@@ -22,3 +22,23 @@ func GetWordsPerLine() int {
 		return 15
 	}
 }
+
+func GetLinesPerPage() int {
+	_, height := GetTerminalSize()
+
+	if height < 12 {
+		return 5
+	} else if height < 20 {
+		return 8
+	} else if height < 25 {
+		return 12
+	} else if height < 30 {
+		return 15
+	} else if height < 40 {
+		return 20
+	} else if height < 50 {
+		return 25
+	} else {
+		return 28
+	}
+}

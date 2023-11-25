@@ -130,6 +130,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.openedFileText.TokenCursorPosition < m.openedFileText.TokenLength-1 && m.openedFileText.TokenCursorPosition+line < m.openedFileText.TokenLength-1 {
 					m.openedFileText.TokenCursorPosition += line
 				}
+			case "d":
+				if m.openedFileText.CurrentPage < m.openedFileText.Pages-1 {
+					m.openedFileText.CurrentPage++
+				}
+			case "a":
+				if m.openedFileText.CurrentPage > 0 {
+					m.openedFileText.CurrentPage--
+				}
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
@@ -168,20 +176,22 @@ func (m model) View() string {
 		s += "\nPress q to quit.\n"
 	} else if m.viewIndex == 1 {
 		wordsPerLine := terminalSize.GetWordsPerLine()
+		linesPerPage := terminalSize.GetLinesPerPage()
 		width, height := terminalSize.GetTerminalSize()
 
 		s = "Hello you are in " + m.openedFile + " and cursor is at: "
 		s += fmt.Sprintf("%v", m.openedFileText.TokenCursorPosition)
 		s += fmt.Sprintf("\nCurrent size: %v %v\n", width, height)
 		s += "\n"
-		for k, element := range m.openedFileText.TokenList {
+		for k, element := range m.openedFileText.PageList[m.openedFileText.CurrentPage] {
 			var padding1 string = ""
 			var padding2 string = " "
 			if k%wordsPerLine == 0 && k != 0 {
 				padding2 = "\n"
 			}
 			s += padding1
-			if k == m.openedFileText.TokenCursorPosition {
+			actualKey := k + (m.openedFileText.CurrentPage * wordsPerLine * linesPerPage)
+			if actualKey == m.openedFileText.TokenCursorPosition {
 				s += selectedItemStyle.Render(element)
 			} else {
 				s += element
@@ -189,7 +199,10 @@ func (m model) View() string {
 			s += padding2
 		}
 		s += "\n"
-
+		s += fmt.Sprintf("%v", m.openedFileText.TokenCursorPosition)
+		s += fmt.Sprintf("\nCurrent size: %v %v\n", width, height)
+		s += fmt.Sprintf("\nPages: %v \n", m.openedFileText.Pages)
+		s += "\n"
 		s += "\nTo go back to the main menu, press 'b'. \n"
 	}
 
