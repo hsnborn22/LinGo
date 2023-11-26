@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
+	"example.com/packages/audioPlayer"
 	"example.com/packages/fileReader"
 	"example.com/packages/terminalSize"
 	tea "github.com/charmbracelet/bubbletea"
@@ -141,6 +143,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.openedFileText.CurrentPage > 0 {
 					m.openedFileText.CurrentPage--
 				}
+
+			case "0":
+				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 0
+			case "1":
+				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 1
+			case "2":
+				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 2
+			case "3":
+				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 3
+
+			case "4":
+				audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				mp3FilePath := fmt.Sprintf("audio/%s.mp3", m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+
+				err := audioPlayer.PlayMP3(mp3FilePath)
+				if err != nil {
+					log.Fatal(err)
+				}
+				audioPlayer.DeleteMP3(mp3FilePath)
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
