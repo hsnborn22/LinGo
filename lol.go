@@ -14,10 +14,13 @@ import (
 // Styles for the app
 
 var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	titleStyle         = lipgloss.NewStyle().MarginLeft(2)
+	itemStyle          = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle  = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	quitTextStyle      = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	notKnownItemStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+	semiKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFCA3A"))
+	knownItemStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#00b300"))
 )
 
 func visitFile(fp string, fi os.DirEntry, err error) error {
@@ -193,6 +196,19 @@ func (m model) View() string {
 			actualKey := k + (m.openedFileText.CurrentPage * wordsPerLine * linesPerPage)
 			if actualKey == m.openedFileText.TokenCursorPosition {
 				s += selectedItemStyle.Render(element)
+			} else if value, ok := m.openedFileText.WordLevels[element]; ok {
+				switch value {
+				case 0:
+					s += element
+				case 1:
+					s += notKnownItemStyle.Render(element)
+				case 2:
+					s += semiKnownItemStyle.Render(element)
+				case 3:
+					s += knownItemStyle.Render(element)
+				default:
+					s += element
+				}
 			} else {
 				s += element
 			}
