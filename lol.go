@@ -9,6 +9,7 @@ import (
 	"example.com/packages/audioPlayer"
 	"example.com/packages/fileReader"
 	"example.com/packages/terminalSize"
+	"example.com/packages/translator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -146,12 +147,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "0":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 0
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
 			case "1":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 1
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
 			case "2":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 2
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
 			case "3":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 3
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
 
 			case "4":
 				audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
@@ -162,6 +167,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					log.Fatal(err)
 				}
 				audioPlayer.DeleteMP3(mp3FilePath)
+
+			// get translation
+			case "5":
+				translation := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				m.openedFileText.CurrentTranslate = translation
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
@@ -239,6 +249,8 @@ func (m model) View() string {
 		s += fmt.Sprintf("%v", m.openedFileText.TokenCursorPosition)
 		s += fmt.Sprintf("\nCurrent size: %v %v\n", width, height)
 		s += fmt.Sprintf("\nPages: %v \n", m.openedFileText.Pages)
+		s += "\n"
+		s += fmt.Sprintf("Translation of selected word: %s", m.openedFileText.CurrentTranslate)
 		s += "\n"
 		s += "\nTo go back to the main menu, press 'b'. \n"
 	}

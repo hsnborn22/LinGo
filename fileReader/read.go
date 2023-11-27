@@ -1,9 +1,11 @@
 package fileReader
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"example.com/packages/terminalSize"
 )
@@ -18,6 +20,7 @@ type Text struct {
 	PageList            [][]string
 	CurrentPage         int
 	WordLevels          map[string]int
+	CurrentTranslate    string
 }
 
 func ReturnFileContent(filename string) string {
@@ -90,12 +93,60 @@ func CheckIfContentIsNil(st string) bool {
 	return emptyFlag
 }
 
-func InitMap(tokens []string) map[string]int {
-	output := make(map[string]int)
-	for _, token := range tokens {
-		output[token] = 1
+func MakeJsonFile(data map[string]int) {
+	filename := "languages/russian/words.json"
+	jsonData, err1 := json.Marshal(data)
+
+	if err1 != nil {
+		fmt.Println("Error while marshalling the data", err1)
+		return
 	}
-	return output
+
+	file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err2 != nil {
+		fmt.Println("Error opening file:", err2)
+		return
+	}
+	defer file.Close() // Close the file when we're done
+
+	// Write data to the file
+	_, err3 := file.Write(jsonData)
+
+	if err3 != nil {
+		fmt.Println("Error writing to file:", err3)
+		return
+	}
+}
+
+func LoadJsonWords(filepath string) map[string]int {
+	content, err := ioutil.ReadFile(filepath)
+	actualContent := string(content)
+	var data map[string]int
+	err2 := json.Unmarshal([]byte(actualContent), &data)
+
+	if err2 != nil || err != nil {
+		fmt.Printf("Error while trying to unmarshal json\n")
+	}
+	return data
+}
+
+func FileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
+}
+
+func InitMap(tokens []string) map[string]int {
+	if FileExists("languages/russian/words.json") {
+		output := LoadJsonWords("languages/russian/words.json")
+		return output
+	} else {
+		output := make(map[string]int)
+		for _, token := range tokens {
+			output[token] = 1
+		}
+		MakeJsonFile(output)
+		return output
+	}
 }
 
 func InitText(filename string) Text {
