@@ -173,6 +173,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				translation := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
 				m.openedFileText.CurrentTranslate = translation
 
+			case "f":
+				fileReader.MakeDictionary(m.openedFileText.WordLevels)
+
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
 			case "b":
@@ -207,6 +210,7 @@ func (m model) View() string {
 		}
 
 		// The footer
+		s += "\nPress f to make a dictionary file. \n"
 		s += "\nPress q to quit.\n"
 	} else if m.viewIndex == 1 {
 		wordsPerLine := terminalSize.GetWordsPerLine()
@@ -247,12 +251,11 @@ func (m model) View() string {
 		}
 		s += "\n"
 		s += fmt.Sprintf("%v", m.openedFileText.TokenCursorPosition)
-		s += fmt.Sprintf("\nCurrent size: %v %v\n", width, height)
-		s += fmt.Sprintf("\nPages: %v \n", m.openedFileText.Pages)
+		s += fmt.Sprintf("\nPages: %v", m.openedFileText.Pages)
 		s += "\n"
 		s += fmt.Sprintf("Translation of selected word: %s", m.openedFileText.CurrentTranslate)
 		s += "\n"
-		s += "\nTo go back to the main menu, press 'b'. \n"
+		s += "\nTo go back to the main menu, press 'b' || Press f to make a dictionary file. \nPress q to quit."
 	}
 
 	// Send the UI for rendering

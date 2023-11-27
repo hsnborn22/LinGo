@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"example.com/packages/terminalSize"
+	"example.com/packages/translator"
 )
 
 type Text struct {
@@ -142,10 +143,36 @@ func InitMap(tokens []string) map[string]int {
 	} else {
 		output := make(map[string]int)
 		for _, token := range tokens {
-			output[token] = 1
+			output[token] = 0
 		}
 		MakeJsonFile(output)
 		return output
+	}
+}
+
+func MakeDictionary(data map[string]int) {
+	filename := "languages/russian/dictionary.txt"
+	finalString := ""
+	finalString += "\n"
+	for k, v := range data {
+		if v == 1 || v == 2 {
+			translation := translator.Translate(k)
+			finalString += fmt.Sprintf("%s, %s\n", k, translation)
+		}
+	}
+	file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err2 != nil {
+		fmt.Println("Error opening file:", err2)
+		return
+	}
+	defer file.Close() // Close the file when we're done
+
+	// Write data to the file
+	_, err3 := file.Write([]byte(finalString))
+
+	if err3 != nil {
+		fmt.Println("Error writing to file:", err3)
+		return
 	}
 }
 
