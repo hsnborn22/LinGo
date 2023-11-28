@@ -8,6 +8,7 @@ import (
 
 	"example.com/packages/audioPlayer"
 	"example.com/packages/fileReader"
+	"example.com/packages/languageHandler"
 	"example.com/packages/terminalSize"
 	"example.com/packages/translator"
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,21 +40,50 @@ func visitFile(fp string, fi os.DirEntry, err error) error {
 	return nil
 }
 
+func listDirectories(directoryPath string) ([]string, error) {
+	var directories []string
+
+	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			directories = append(directories, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return directories, nil
+}
+
 var filePaths []string // Declare a global slice to store file paths
 
 type model struct {
-	choices        []string // items on the to-do list
-	cursor         int      // which to-do list item our cursor is pointing at
-	viewIndex      int      // viewIndex --> will be 0 for the menu, and 1 for an opened file.
-	openedFile     string   // will store the name of the file we opened.
-	openedFileText fileReader.Text
+	choices         []string // items on the to-do list
+	choices2        []string // language select menu
+	cursor          int      // which to-do list item our cursor is pointing at
+	viewIndex       int      // viewIndex --> will be 0 for the menu, and 1 for an opened file.
+	openedFile      string   // will store the name of the file we opened.
+	openedFileText  fileReader.Text
+	cursor2         int
+	currentLanguage string
 }
 
 func initialModel() model {
+	directoryPath := "languages"
+
+	directories, _ := listDirectories(directoryPath)
+	directories = directories[1:]
 	return model{
 		// Our to-do list is a grocery list
 		choices:   filePaths,
-		viewIndex: 0,
+		choices2:  directories,
+		viewIndex: 2,
+		cursor2:   0,
 	}
 }
 
@@ -94,7 +124,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter", " ":
 				m.viewIndex = 1
 				m.openedFile = m.choices[m.cursor]
-				text := fileReader.InitText(m.openedFile)
+				text := fileReader.InitText(m.openedFile, m.currentLanguage)
 				m.openedFileText = text
 			}
 		}
@@ -147,19 +177,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "0":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 0
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
 			case "1":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 1
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
 			case "2":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 2
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
 			case "3":
 				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 3
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels)
+				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
 
 			case "4":
-				audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				currentLanguageId := languageHandler.LanguageMap[m.currentLanguage]
+				audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentLanguageId)
 				mp3FilePath := fmt.Sprintf("audio/%s.mp3", m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
 
 				err := audioPlayer.PlayMP3(mp3FilePath)
@@ -170,11 +201,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// get translation
 			case "5":
-				translation := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				currentlLanguageId := languageHandler.LanguageMap[m.currentLanguage]
+				translation := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId)
 				m.openedFileText.CurrentTranslate = translation
 
 			case "f":
-				fileReader.MakeDictionary(m.openedFileText.WordLevels)
+				currentLanguageId := languageHandler.LanguageMap[m.currentLanguage]
+				fileReader.MakeDictionary(m.openedFileText.WordLevels, currentLanguageId)
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
@@ -182,6 +215,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewIndex = 0
 			}
 		}
+	case 2:
+		switch msg := msg.(type) {
+
+		// Is it a key press?
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			case "up", "k":
+				if m.cursor2 > 0 {
+					m.cursor2--
+				}
+
+			// The "down" and "j" keys move the cursor2 down
+			case "down", "j":
+				if m.cursor2 < len(m.choices2)-1 {
+					m.cursor2++
+				}
+
+			// The "enter" key and the spacebar (a literal space) toggle
+			// the selected state for the item that the cursor is pointing at.
+			case "enter", " ":
+				m.viewIndex = 0
+				m.currentLanguage = m.choices2[m.cursor2][10:]
+
+			}
+
+		}
+
 	}
 	return m, nil
 }
@@ -190,7 +252,8 @@ func (m model) View() string {
 	var s string
 	if m.viewIndex == 0 {
 		// The header
-		s = "What text file do you want to open?\n\n"
+		s = "You are currently studying: " + m.currentLanguage + "\n"
+		s += "What text file do you want to open?\n\n"
 
 		// Iterate over our choices
 
@@ -256,6 +319,28 @@ func (m model) View() string {
 		s += fmt.Sprintf("Translation of selected word: %s", m.openedFileText.CurrentTranslate)
 		s += "\n"
 		s += "\nTo go back to the main menu, press 'b' || Press f to make a dictionary file. \nPress q to quit."
+	} else if m.viewIndex == 2 {
+		s = "What language do you want to study?\n\n"
+
+		// Iterate over our choices
+
+		for i, choice := range m.choices2 {
+
+			// Is the cursor pointing at this choice?
+			cursor := " " // no cursor
+			if m.cursor2 == i {
+				cursor = ">" // cursor!
+			}
+
+			// Is this choice selected?
+			var checked = "x" // selected!
+
+			// Render the row
+			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice[10:])
+		}
+
+		// The footer
+		s += "\nPress q to quit.\n"
 	}
 
 	// Send the UI for rendering

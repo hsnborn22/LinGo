@@ -53,7 +53,7 @@ func TokenizeText(text string) []string {
 		token := text[j:i]
 		output = append(output, token)
 		if i < len(text)-1 {
-			for string(text[i]) == " " {
+			for string(text[i]) == " " && i < len(text)-1 {
 				i++
 			}
 		}
@@ -94,8 +94,8 @@ func CheckIfContentIsNil(st string) bool {
 	return emptyFlag
 }
 
-func MakeJsonFile(data map[string]int) {
-	filename := "languages/russian/words.json"
+func MakeJsonFile(data map[string]int, language string) {
+	filename := fmt.Sprintf("languages/%s/words.json", language)
 	jsonData, err1 := json.Marshal(data)
 
 	if err1 != nil {
@@ -136,27 +136,28 @@ func FileExists(filename string) bool {
 	return !os.IsNotExist(err)
 }
 
-func InitMap(tokens []string) map[string]int {
-	if FileExists("languages/russian/words.json") {
-		output := LoadJsonWords("languages/russian/words.json")
+func InitMap(tokens []string, language string) map[string]int {
+	fileInQuestion := fmt.Sprintf("languages/%s/words.json", language)
+	if FileExists(fileInQuestion) {
+		output := LoadJsonWords(fileInQuestion)
 		return output
 	} else {
 		output := make(map[string]int)
 		for _, token := range tokens {
 			output[token] = 0
 		}
-		MakeJsonFile(output)
+		MakeJsonFile(output, language)
 		return output
 	}
 }
 
-func MakeDictionary(data map[string]int) {
+func MakeDictionary(data map[string]int, language string) {
 	filename := "languages/russian/dictionary.txt"
 	finalString := ""
 	finalString += "\n"
 	for k, v := range data {
 		if v == 1 || v == 2 {
-			translation := translator.Translate(k)
+			translation := translator.Translate(k, language)
 			finalString += fmt.Sprintf("%s, %s\n", k, translation)
 		}
 	}
@@ -176,14 +177,14 @@ func MakeDictionary(data map[string]int) {
 	}
 }
 
-func InitText(filename string) Text {
+func InitText(filename string, language string) Text {
 	content := ReturnFileContent(filename)
 	if !CheckIfContentIsNil(content) {
 		var contentLength = len(content)
 		var currentCursor int = 0
 		TokenList := TokenizeText(content)
 		pageList := DivideInPages(TokenList)
-		var wordsMap = InitMap(TokenList)
+		var wordsMap = InitMap(TokenList, language)
 		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
 		return outputText
 	} else {

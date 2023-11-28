@@ -1,5 +1,26 @@
+/*
+	=====================================================================
+
+** audioPlayer package **
+This package is responsible for the playing of sounds inside the applications,
+in particular, the audio files for the words inside the text, via a TTS API.
+
+    =====================================================================
+*/
+
 package audioPlayer
 
+/* Imported packages:
+1) bytes --> needed for the manipulation of byte slices
+2) encoding/json --> we will need it since the communication with the tts api we're using happens via json
+3) fmt --> needed to log possible errors to the console
+4) io and io/util --> needed for working with files
+5) net/http --> needed to perform the http requests tot he api
+6) os --> needed for file manipulation
+7) time --> needed to deal with times
+8) beep --> needed to play the mp3
+
+*/
 import (
 	"bytes"
 	"encoding/json"
@@ -15,10 +36,21 @@ import (
 	"github.com/faiface/beep/speaker"
 )
 
+// Response struct:
+// a struct type that mirrors the json for unmarshalling
+
 type Response struct {
 	Success bool   `json:"success"`
 	Id      string `json:"id"`
 }
+
+/*
+downloadFile function:
+input: 2 strings: url and filePath
+output: 1 (possible) error
+This function, as the name suggests, is responsible for the download of
+the mp3 file from the api.
+*/
 
 func downloadFile(url, filePath string) error {
 	// Make the GET request
@@ -49,11 +81,11 @@ func downloadFile(url, filePath string) error {
 	return nil
 }
 
-func GetAudio(text string) {
+func GetAudio(text string, languageId string) {
 	url := "https://api.soundoftext.com/sounds"
 
 	// Define the data to be sent in the request body (can be a string or other types)
-	data := []byte(fmt.Sprintf(`{"engine": "Google", "data": {"text":"%s", "voice": "ru-RU"}}`, text))
+	data := []byte(fmt.Sprintf(`{"engine": "Google", "data": {"text":"%s", "voice": "%s"}}`, text, languageId))
 
 	// Make the HTTP POST request
 	response, err := http.Post(url, "application/json", bytes.NewBuffer(data))
