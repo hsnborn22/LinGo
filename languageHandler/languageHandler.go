@@ -1,4 +1,16 @@
+/*
+	=====================================================================
+
+** languageHandler package **
+This package is responsible for the mapping of determinate languages to their
+IDs, which can then be used in the APIs employed by the application.
+
+    =====================================================================
+*/
+
 package languageHandler
+
+// the LanguageMap map contains the languages mapped to their IDs.
 
 var LanguageMap map[string]string = map[string]string{
 	"afrikaans":   "af-ZA",

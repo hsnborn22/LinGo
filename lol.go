@@ -118,6 +118,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < len(m.choices)-1 {
 					m.cursor++
 				}
+			case "b":
+				m.viewIndex = 2
+				m.currentLanguage = ""
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
@@ -126,6 +129,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.openedFile = m.choices[m.cursor]
 				text := fileReader.InitText(m.openedFile, m.currentLanguage)
 				m.openedFileText = text
+			case "f":
+				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
+				fileReader.MakeDictionary(dictionary, m.currentLanguage)
 			}
 		}
 
@@ -274,6 +280,7 @@ func (m model) View() string {
 
 		// The footer
 		s += "\nPress f to make a dictionary file. \n"
+		s += "Press b to go back to the language selection menu. \n"
 		s += "\nPress q to quit.\n"
 	} else if m.viewIndex == 1 {
 		wordsPerLine := terminalSize.GetWordsPerLine()

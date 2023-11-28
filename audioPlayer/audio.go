@@ -8,6 +8,12 @@ in particular, the audio files for the words inside the text, via a TTS API.
     =====================================================================
 */
 
+// The API used (api.soundoftext.com) works as follows:
+// We first make a POST request, containing the text we want to hear and the language selected.
+// The API then responds to us with json containing the url to the mp3 file generated.
+// We then make a GET request to this url and download the mp3. We play the mp3 with the beep library,
+// and then delete it.
+
 package audioPlayer
 
 /* Imported packages:
@@ -81,10 +87,22 @@ func downloadFile(url, filePath string) error {
 	return nil
 }
 
+/*
+GetAudio function:
+input:
+- text (string) = the text we want the audio recording of
+- languageId (string) = the id of the language we want the recording in
+
+output: void
+The following function gets the mp3 audio for a particular text.
+In order to get the audio, it downloads it from an url given by the API
+using the downloadFile function.
+*/
+
 func GetAudio(text string, languageId string) {
 	url := "https://api.soundoftext.com/sounds"
 
-	// Define the data to be sent in the request body (can be a string or other types)
+	// This is the data that will be sent in the request body:
 	data := []byte(fmt.Sprintf(`{"engine": "Google", "data": {"text":"%s", "voice": "%s"}}`, text, languageId))
 
 	// Make the HTTP POST request
@@ -108,14 +126,20 @@ func GetAudio(text string, languageId string) {
 		return
 	}
 
+	// Declare a res variable (of type Response defined above)
+	// This variable will hold the json that we will receive as a response from the API.
 	var res Response
+	// unmarshal (i.e parse the json inside the res variable of type Response struct)
+	// if there is an error it will be saved inside of the err2 error variable.
 	err2 := json.Unmarshal(body, &res)
 
+	// error handling
 	if err2 != nil {
 		fmt.Println("Error parsing JSON:", err2)
 		return
 	}
 
+	// This is the url to which we will perform the get request to get the mp3 file.
 	mp3URL := fmt.Sprintf("https://files.soundoftext.com/%s.mp3", res.Id)
 
 	// Local path where you want to save the downloaded file
@@ -123,11 +147,20 @@ func GetAudio(text string, languageId string) {
 
 	// Call the downloadFile function
 	err3 := downloadFile(mp3URL, localFilePath)
+	// some more error handling
 	if err3 != nil {
 		fmt.Println("Error downloading file:", err3)
 		return
 	}
 }
+
+/*
+PlayMP3 function:
+input: filePath (string) which is the path to the mp3 file we want to play.
+output: (possibly) an error
+The PlayMP3 function, like the name suggests, is responsible for the sounds played in the
+application. It will play the mp3 files using concurrency.
+*/
 
 func PlayMP3(filePath string) error {
 	f, err := os.Open(filePath)
@@ -152,8 +185,18 @@ func PlayMP3(filePath string) error {
 	return nil
 }
 
+/*
+DeleteMP3 function
+input: path (string), which is the filepath to the mp3 file we want to delete.
+output: void (nothing)
+This function, like the name suggests, deletes an mp3 file in a specific location.
+*/
+
 func DeleteMP3(path string) {
+	// Remove the file; if there is an error, store it inside the err variable
 	err := os.Remove(path)
+	// Error handling:
+	// if there is an error, we get a notification.
 	if err != nil {
 		fmt.Println("Error deleting file:", err)
 		return
