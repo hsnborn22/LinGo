@@ -1,0 +1,5 @@
+Things to do:
+
+1) Refactor the code in the main file a little more.
+2) Add automated testing to the various micro-components of the app
+
