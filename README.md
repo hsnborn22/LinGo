@@ -22,9 +22,9 @@ All this information about words and how well you know them are then saved local
 
 To make flashcards out of the words that you do not know, you can then just press the "f" key in the language menu or directly while you're reading a text, and a new file "dictionary.txt" will be created in the folder of the language you're studying. This file is formatted in such a way that can be imported into flashcards in both anki and memrise, since the words will be stored like this:
 
-<word1>,<translation1>
+word1,translation1
 
-<word2>,<translation2>
+word2,translation2
 
 ...
 
