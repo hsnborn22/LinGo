@@ -36,3 +36,20 @@ Summing everything up, the goal of the app is to provide a lightweight, fast to 
 
 At the current stage the application supports virtually all languages that are "tokenized with spaces", i.e where words are separated by spaces (almost all european languages are like this, as well as many asian languages such as indonesian, tagalog,mongolian, kazakh exc.). The app also supports mandarin chinese (both simplified and traditional) both for tts and for in-text translations. Languages such as arabic, korean and japanese are currently not supported yet.
 If you want to study a less popular language which is still supported (maybe a conlang) such as lojban, toki pona or even your own conlang, a procedure to add it to the app will be explained after (don't worry it's very easy). However note that tts or translation might not be available. 
+
+## Installation:
+In this section we will see how to install the program and how to run it on your computer. I'll soon add downloadable binaries for most operating systems when I will expand the project a bit, so building from source will not be necessary anymore, but for now this is the only way to run the program.
+
+### Building from source
+To build LinGo from source, you will first need a go compiler on your machine. The go version that was used to code LinGo is the (currently) latest version go 1.21.4 . It is preferred that you use go 1.21.4, even though it probably works even with older versions (haven't checked yet). With this said, if you don't have go installed on your machine, you can follow the installation guide on [their official website](https://go.dev/doc/install) (they have a guide for linux,macOS and windows). Once you have installed go on your machine, download the source code from the repository by clicking on the green "code" button on the top, and then "download zip" (alternatively you can decide to clone the repo from the terminal).
+
+Once you have the repo installed on your machine, head over to the "src" folder (this is the folder that contains the source code) and run the following command:
+
+```bash
+go get
+```
+This will install all the dependencies necessary for the application to work. Once you have done this, you are ready to (Lin)go. To start the application run the following command (while staying in the src folder).
+
+```bash
+go run main.go
+```
