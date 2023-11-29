@@ -1,0 +1,1 @@
+This directory is where we will save the mp3 files for the text to speech implementation inside our program. 
