@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -71,6 +70,7 @@ type model struct {
 	openedFileText  fileReader.Text
 	cursor2         int
 	currentLanguage string
+	currentError    string
 }
 
 func initialModel() model {
@@ -80,10 +80,11 @@ func initialModel() model {
 	directories = directories[1:]
 	return model{
 		// Our to-do list is a grocery list
-		choices:   filePaths,
-		choices2:  directories,
-		viewIndex: 2,
-		cursor2:   0,
+		choices:      filePaths,
+		choices2:     directories,
+		viewIndex:    2,
+		cursor2:      0,
+		currentError: "",
 	}
 }
 
@@ -196,29 +197,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "4":
 				currentLanguageId := languageHandler.LanguageMap[m.currentLanguage]
-				audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentLanguageId)
+				m.currentError = ""
+				m.currentError += audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentLanguageId)
 				mp3FilePath := fmt.Sprintf("audio/%s.mp3", m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
 
-				err := audioPlayer.PlayMP3(mp3FilePath)
-				if err != nil {
-					log.Fatal(err)
+				if m.currentError != "" {
+					m.currentError += "\n"
 				}
-				audioPlayer.DeleteMP3(mp3FilePath)
+				m.currentError += audioPlayer.PlayMP3(mp3FilePath)
+				m.currentError += "\n"
+				m.currentError += audioPlayer.DeleteMP3(mp3FilePath)
 
 			// get translation
 			case "5":
-				currentlLanguageId := languageHandler.LanguageMap[m.currentLanguage]
-				translation := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId)
+				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
+				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId)
+				m.currentError = errString
 				m.openedFileText.CurrentTranslate = translation
 
 			case "f":
-				currentLanguageId := languageHandler.LanguageMap[m.currentLanguage]
-				fileReader.MakeDictionary(m.openedFileText.WordLevels, currentLanguageId)
+				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage)
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
 			case "b":
 				m.viewIndex = 0
+				m.currentError = ""
 			}
 		}
 	case 2:
@@ -324,7 +328,7 @@ func (m model) View() string {
 		s += fmt.Sprintf("\nPages: %v", m.openedFileText.Pages)
 		s += "\n"
 		s += fmt.Sprintf("Translation of selected word: %s", m.openedFileText.CurrentTranslate)
-		s += "\n"
+		s += "\nError flag: " + m.currentError
 		s += "\nTo go back to the main menu, press 'b' || Press f to make a dictionary file. \nPress q to quit."
 	} else if m.viewIndex == 2 {
 		s = "What language do you want to study?\n\n"

@@ -33,6 +33,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"unicode/utf8"
 
 	"example.com/packages/terminalSize"
 	"example.com/packages/translator"
@@ -112,7 +113,7 @@ func TokenizeText(text string) []string {
 		// With i we will reach the end of the current word (current token).
 		j := i
 		// We keep incrementing i until we hit an empty space (which terminates the current word)
-		for string(text[i]) != " " && i < len(text)-1 && string(text[i]) != "\n" && string(text[i]) != "\t" {
+		for (string(text[i]) != " " && string(text[i]) != "\n" && string(text[i]) != "\t") && i < len(text)-1 {
 			i++
 		}
 		// We then set the token equal to text[j:i], using the string slicing provided by Go.
@@ -121,9 +122,33 @@ func TokenizeText(text string) []string {
 		output = append(output, token)
 		// Skip other empty spaces
 		if i < len(text)-1 {
-			for string(text[i]) == " " || string(text[i]) == "\n" || string(text[i]) == "\t" && i < len(text)-1 {
+			for (string(text[i]) == " " || string(text[i]) == "\n" || string(text[i]) == "\t") && i < len(text)-1 {
 				i++
 			}
+		}
+	}
+	// Return our slice of tokens.
+	return output
+}
+
+/*
+TokenizeChineseText function:
+
+This function provides a tokenization for chinese (both simplified and traditional) texts.
+
+*/
+
+func TokenizeChineseText(text string) []string {
+	// initialize the slice we're going to return
+	var output []string
+	// chineseString, _ := utf8.DecodeRuneInString(text)
+	// Loop through the characters of the string
+	// If there are no more empty spaces, then we can start scanning for an actual pictogram
+	// In chinese, we will denote each pictogram as a token.
+	// start scanning
+	for _, char := range text {
+		if string(char) != " " && string(char) != "\n" && string(char) != "\t" {
+			output = append(output, string(char))
 		}
 	}
 	// Return our slice of tokens.
@@ -226,15 +251,35 @@ func MakeJsonFile(data map[string]int, language string) {
 	}
 }
 
+/*
+LoadJsonWords function:
+
+input: filepath (string) --> the location in memory of our json file storing the
+word levels.
+output: map --> which is the levels of knowledge of words represented as a Go map.
+
+The following function is responsible for loading the levels of knowledge for various words
+starting from a json file storing them into a map object.
+This function is used in the InitMap method, which is very important for the logic of the program.
+*/
+
 func LoadJsonWords(filepath string) map[string]int {
+	// Read the content of the file (which is Json).
+	// if there is an error, save it in the err variable
 	content, err := ioutil.ReadFile(filepath)
+	// Convert the content we got to string type
+	// in order to work more easily with it throughout the application
 	actualContent := string(content)
+	// Initialize our return value (our map)
 	var data map[string]int
+	// Unmarshal (i.e parse the json) into the Go data map variable data.
 	err2 := json.Unmarshal([]byte(actualContent), &data)
 
+	// If there is an error, tell us.
 	if err2 != nil || err != nil {
 		fmt.Printf("Error while trying to unmarshal json\n")
 	}
+	// return the map.
 	return data
 }
 
@@ -256,14 +301,22 @@ inputs:
 1) tokens (slice of strings) --> which is the list of tokens of the current text
 2) language --> which is the current language we're studying
 output: a map, which is the map which represents how well we know the words in the text.
+
+This function is responsible for the creation of a map file storing the levels of knowledge of the various words we encounter.
+If there is an existing json files that already has some levels of knowledge for words saved, import that.
+If not, create it.
 */
 
 func InitMap(tokens []string, language string) map[string]int {
+	// This is the location of our words.json file, which stores on our disk (non-volatile memory)
+	// the levels of knowledge of various words for the language we're studying.
 	fileInQuestion := fmt.Sprintf("languages/%s/words.json", language)
+	// If the file exists, load a map object from the file.
 	if FileExists(fileInQuestion) {
 		output := LoadJsonWords(fileInQuestion)
 		return output
 	} else {
+		// If not, create it and initialize all the knowledge levels for the words in the text to 0 (ignore).
 		output := make(map[string]int)
 		for _, token := range tokens {
 			output[token] = 0
@@ -272,6 +325,17 @@ func InitMap(tokens []string, language string) map[string]int {
 		return output
 	}
 }
+
+/*
+MakeDictFromMenu function
+input: language (string)
+output: it returns a map, which contains as keys the words and as values the levels of knowledge.
+This function allows you to create a dictionary file (i.e a file containing pairs of words in source-target language).
+This file is formatted in such a way that you can import it in both memrise and anki and study the pairs you encountered
+as flash cards.
+The creation of the actual file is done in the main file, so this function is just an intermediary. In fact, it returns a
+map as you can see. From this map we then quickly create the file we cited above.
+*/
 
 func MakeDictFromMenu(language string) map[string]int {
 	fileInQuestion := fmt.Sprintf("languages/%s/words.json", language)
@@ -283,16 +347,44 @@ func MakeDictFromMenu(language string) map[string]int {
 	}
 }
 
+/*
+MakeDictionary function
+
+This function is responsible for the actual creation of the dictionary file that can then
+be exported to Anki,memrise and other flashcard systems. It takes in a map[string]int which represents
+the levels of knowledge of determinate words, and the target language we're studying.
+With these informations it then creates a file that contains couplets of the form:
+
+<word in language we're studying>, <word in language we understand>
+
+Example:
+
+hola, hello
+gracias, thanks
+como estas, how are you
+
+These files can then be exported and made into flashcards using Anki or memrise.
+*/
+
 func MakeDictionary(data map[string]int, language string) {
+	// Path where we will save our dictionary file.
 	filename := fmt.Sprintf("languages/%s/dictionary.txt", language)
+	// Declare the finalString variable and initialize it to empty string "".
+	// this is the content (as a string) of our dictionary.txt file.
 	finalString := ""
 	finalString += "\n"
+	// Loop through the key value pairs of the data map we passed in.
 	for k, v := range data {
+		// If we don't know a word (i.e if it has code 1 or 2)
+		// save it into the dictionary
 		if v == 1 || v == 2 {
-			translation := translator.Translate(k, language)
+			// get the translation via the API
+			translation, _ := translator.Translate(k, language)
+			// append to the finalString
 			finalString += fmt.Sprintf("%s, %s\n", k, translation)
 		}
 	}
+	// Use the os.Openfile to open file; if it doesnt exist, it automatically creates it.
 	file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err2 != nil {
 		fmt.Println("Error opening file:", err2)
@@ -309,20 +401,50 @@ func MakeDictionary(data map[string]int, language string) {
 	}
 }
 
+/*
+InitText function:
+input: the name of the file we opened(string) and the current language we're studying (a string).
+output: a Text object
+
+The following function is responsible for the creation (from this the name InitText)
+of a Text struct, which represents the current text opened in the application.
+*/
+
 func InitText(filename string, language string) Text {
+	// Get the content inside the file as a string.
 	content := ReturnFileContent(filename)
-	if !CheckIfContentIsNil(content) {
+	// Initialize the cursor position to 0 (i.e to the start).
+	var currentCursor int = 0
+	// if the file has some characters which are not empty spaces, tabs or new lines
+	// and is not chinese, then do the following
+	if !CheckIfContentIsNil(content) && language != "chinese" {
+		// Calculate the length of the content inside the file.
 		var contentLength = len(content)
-		var currentCursor int = 0
+		// Tokenize the text (i.e split it in tokens) using the TokenizeText function
 		TokenList := TokenizeText(content)
+		// Get the list of pages; each page will be a list of tokens.
+		pageList := DivideInPages(TokenList)
+		// initialize a word map using the InitMap function: this denotes the level of knowledge of the words inside the text
+		// in a particular language.
+		var wordsMap = InitMap(TokenList, language)
+		// Create outputText object
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
+		// Return it.
+		return outputText
+	} else if !CheckIfContentIsNil(content) && language == "chinese" {
+		// Calculate the length of the content inside the file.
+		// In this case, since we're dealing with chinese, we will have to use the utf8.RuneCountInString method instead.
+		// This will actually count the number of characters, in contrast to the "len" function which will just return the byte length.
+		var contentLength = utf8.RuneCountInString(content)
+		TokenList := TokenizeChineseText(content)
 		pageList := DivideInPages(TokenList)
 		var wordsMap = InitMap(TokenList, language)
 		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
 		return outputText
 	} else {
 		content = "Text file is empty. Are you sure you opened the right one?"
+		// Calculate the length of the content inside the file.
 		var contentLength = len(content)
-		var currentCursor int = 0
 		TokenList := TokenizeText(content)
 		pageList := DivideInPages(TokenList)
 		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList)}

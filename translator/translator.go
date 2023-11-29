@@ -82,32 +82,29 @@ This function takes in a text in the source language and returns a translation i
 the target language.
 */
 
-func Translate(text string, languageId string) string {
+func Translate(text string, languageId string) (string, string) {
 	// This piece of code encodes the text in url encoding (since it might possibly be a not valid url)
 	encodedText := url.QueryEscape(text) + "%s"
 	// The url to which we will perform the get request.
-	apiurl := fmt.Sprintf("https://api.mymemory.translated.net/get?q=%s&langpair=%s|en", encodedText, languageId[0:2])
+	apiurl := fmt.Sprintf("https://api.mymemory.translated.net/get?q=%s&langpair=%s|en", encodedText, languageId)
 	// Response and error object originating from the request to the above url.
 	response, err := http.Get(apiurl)
 	// If there is an error, print it out to the console.
 	if err != nil {
-		fmt.Println("Error making POST request:", err)
-		return ""
+		return "", fmt.Sprintf("Error making POST request: %s", err.Error())
 	}
 	// We are going to close the response.Body eventually and we defer it here to the end.
 	defer response.Body.Close()
 
 	// Check if the response status code is 200 OK
 	if response.StatusCode != http.StatusOK {
-		fmt.Printf("Unexpected status code: %d\n", response.StatusCode)
-		return ""
+		return "", fmt.Sprintf("Unexpected status code: %d", response.StatusCode)
 	}
 
 	// Read the response body
 	body, err2 := ioutil.ReadAll(response.Body)
 	if err2 != nil {
-		fmt.Println("Error reading response body:", err2)
-		return ""
+		return "", fmt.Sprintf("Error reading response body: %s", err2.Error())
 	}
 
 	// Initialize a variable res of type Response, to store in the output json as a struct.
@@ -116,16 +113,15 @@ func Translate(text string, languageId string) string {
 	err3 := json.Unmarshal(body, &res)
 
 	if err3 != nil {
-		fmt.Println("Error parsing JSON:", err3)
-		return ""
+		return "", fmt.Sprintf("Error parsing JSON: %s", err3.Error())
 	}
 
 	// Return the translation: we're doing a little case-checking to adjust the output
 	// for some problems regarding text encoding (since we might potentially have non-latin
 	// alphabet languages)
 	if len(res.ResponseData.TranslatedText) >= 2 {
-		return res.ResponseData.TranslatedText[:len(res.ResponseData.TranslatedText)-2]
+		return res.ResponseData.TranslatedText[:len(res.ResponseData.TranslatedText)-2], ""
 	} else {
-		return res.ResponseData.TranslatedText
+		return res.ResponseData.TranslatedText, ""
 	}
 }

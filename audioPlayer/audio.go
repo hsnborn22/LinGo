@@ -58,33 +58,33 @@ This function, as the name suggests, is responsible for the download of
 the mp3 file from the api.
 */
 
-func downloadFile(url, filePath string) error {
+func downloadFile(url, filePath string) string {
 	// Make the GET request
 	response, err := http.Get(url)
 	if err != nil {
-		return err
+		return err.Error()
 	}
 	defer response.Body.Close()
 
 	// Check if the response status code is 200 OK
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Unexpected status code: %d", response.StatusCode)
+		return fmt.Sprintf("Unexpected status code: %d", response.StatusCode)
 	}
 
 	// Create the output file
-	out, err := os.Create(filePath)
-	if err != nil {
-		return err
+	out, err2 := os.Create(filePath)
+	if err2 != nil {
+		return err2.Error()
 	}
 	defer out.Close()
 
 	// Copy the response body to the output file
 	_, err = io.Copy(out, response.Body)
 	if err != nil {
-		return err
+		return err.Error()
 	}
 
-	return nil
+	return ""
 }
 
 /*
@@ -99,7 +99,7 @@ In order to get the audio, it downloads it from an url given by the API
 using the downloadFile function.
 */
 
-func GetAudio(text string, languageId string) {
+func GetAudio(text string, languageId string) string {
 	url := "https://api.soundoftext.com/sounds"
 
 	// This is the data that will be sent in the request body:
@@ -108,22 +108,19 @@ func GetAudio(text string, languageId string) {
 	// Make the HTTP POST request
 	response, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		fmt.Println("Error making POST request:", err)
-		return
+		return err.Error()
 	}
 	defer response.Body.Close()
 
 	// Check if the response status code is 200 OK
 	if response.StatusCode != http.StatusOK {
-		fmt.Printf("Unexpected status code: %d\n", response.StatusCode)
-		return
+		return fmt.Sprintf("Unexpected status code: %d\n", response.StatusCode)
 	}
 
 	// Read the response body
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
+		return fmt.Sprintf("Error reading response body: %s", err.Error())
 	}
 
 	// Declare a res variable (of type Response defined above)
@@ -135,8 +132,7 @@ func GetAudio(text string, languageId string) {
 
 	// error handling
 	if err2 != nil {
-		fmt.Println("Error parsing JSON:", err2)
-		return
+		return fmt.Sprintf("Error parsins JSON: %s", err2.Error())
 	}
 
 	// This is the url to which we will perform the get request to get the mp3 file.
@@ -148,10 +144,10 @@ func GetAudio(text string, languageId string) {
 	// Call the downloadFile function
 	err3 := downloadFile(mp3URL, localFilePath)
 	// some more error handling
-	if err3 != nil {
-		fmt.Println("Error downloading file:", err3)
-		return
+	if err3 != "" {
+		return err3
 	}
+	return ""
 }
 
 /*
@@ -162,16 +158,16 @@ The PlayMP3 function, like the name suggests, is responsible for the sounds play
 application. It will play the mp3 files using concurrency.
 */
 
-func PlayMP3(filePath string) error {
+func PlayMP3(filePath string) string {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return err
+		return err.Error()
 	}
 	defer f.Close()
 
 	streamer, format, err := mp3.Decode(f)
 	if err != nil {
-		return err
+		return err.Error()
 	}
 
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
@@ -182,7 +178,7 @@ func PlayMP3(filePath string) error {
 	})))
 
 	<-done
-	return nil
+	return ""
 }
 
 /*
@@ -192,13 +188,13 @@ output: void (nothing)
 This function, like the name suggests, deletes an mp3 file in a specific location.
 */
 
-func DeleteMP3(path string) {
+func DeleteMP3(path string) string {
 	// Remove the file; if there is an error, store it inside the err variable
 	err := os.Remove(path)
 	// Error handling:
 	// if there is an error, we get a notification.
 	if err != nil {
-		fmt.Println("Error deleting file:", err)
-		return
+		return err.Error()
 	}
+	return ""
 }
