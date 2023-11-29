@@ -43,10 +43,10 @@ In this section we will see how to install the program and how to run it on your
 ### Building from source
 To build LinGo from source, you will first need a go compiler on your machine. The go version that was used to code LinGo is the (currently) latest version go 1.21.4 . It is preferred that you use go 1.21.4, even though it probably works even with older versions (haven't checked yet). With this said, if you don't have go installed on your machine, you can follow the installation guide on [their official website](https://go.dev/doc/install) (they have a guide for linux,macOS and windows). Once you have installed go on your machine, download the source code from the repository by clicking on the green "code" button on the top, and then "download zip" 
 
-[Image 1](imgs/lingo1.png)
+![Image 1](imgs/lingo1.png)
 
 
-[Image 2](imgs/lingo2.png)
+![Image 2](imgs/lingo2.png)
 
 (alternatively you can decide to clone the repo from the terminal with the following command).
 
