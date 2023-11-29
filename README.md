@@ -64,3 +64,11 @@ This will install all the dependencies necessary for the application to work. On
 ```bash
 go run main.go
 ```
+
+## License
+
+[MIT](LICENSE)
+
+## Code of conduct 
+
+[Code of conduct](CODE_OF_CONDUCT.md)
