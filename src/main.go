@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"example.com/packages/audioPlayer"
 	"example.com/packages/fileReader"
+	"example.com/packages/interfaceLanguage"
 	"example.com/packages/languageHandler"
 	"example.com/packages/terminalSize"
 	"example.com/packages/translator"
@@ -71,9 +73,12 @@ type model struct {
 	cursor2         int
 	currentLanguage string
 	currentError    string
+	bootLanguage    string
 }
 
 func initialModel() model {
+	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
+	bootLangString := string(bootLang)
 	directoryPath := "languages"
 
 	directories, _ := listDirectories(directoryPath)
@@ -85,6 +90,7 @@ func initialModel() model {
 		viewIndex:    2,
 		cursor2:      0,
 		currentError: "",
+		bootLanguage: bootLangString,
 	}
 }
 
@@ -132,7 +138,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.openedFileText = text
 			case "f":
 				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
-				fileReader.MakeDictionary(dictionary, m.currentLanguage)
+				fileReader.MakeDictionary(dictionary, m.currentLanguage, m.bootLanguage)
 			}
 		}
 
@@ -211,12 +217,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// get translation
 			case "5":
 				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId)
+				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
 				m.currentError = errString
 				m.openedFileText.CurrentTranslate = translation
 
 			case "f":
-				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage)
+				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage)
+
+			// Move the cursor to the beginning of the current page.
+			case "m":
+				currentCursor := m.openedFileText.CurrentPage * terminalSize.GetLinesPerPage() * terminalSize.GetWordsPerLine()
+				m.openedFileText.TokenCursorPosition = currentCursor
 
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
@@ -262,8 +273,8 @@ func (m model) View() string {
 	var s string
 	if m.viewIndex == 0 {
 		// The header
-		s = "You are currently studying: " + m.currentLanguage + "\n"
-		s += "What text file do you want to open?\n\n"
+		s = interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][2] + m.currentLanguage + "\n"
+		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][3]
 
 		// Iterate over our choices
 
@@ -283,17 +294,17 @@ func (m model) View() string {
 		}
 
 		// The footer
-		s += "\nPress f to make a dictionary file. \n"
-		s += "Press b to go back to the language selection menu. \n"
-		s += "\nPress q to quit.\n"
+		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][4]
+		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][5]
+		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1] + "\n"
 	} else if m.viewIndex == 1 {
 		wordsPerLine := terminalSize.GetWordsPerLine()
 		linesPerPage := terminalSize.GetLinesPerPage()
 		width, height := terminalSize.GetTerminalSize()
 
-		s = "Hello you are in " + m.openedFile + " and cursor is at: "
+		s = interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][6] + m.openedFile + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][7]
 		s += fmt.Sprintf("%v", m.openedFileText.TokenCursorPosition)
-		s += fmt.Sprintf("\nCurrent size: %v %v\n", width, height)
+		s += fmt.Sprintf("\n%s %v %v\n", interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][8], width, height)
 		s += "\n"
 		for k, element := range m.openedFileText.PageList[m.openedFileText.CurrentPage] {
 			var padding1 string = ""
@@ -325,13 +336,14 @@ func (m model) View() string {
 		}
 		s += "\n"
 		s += fmt.Sprintf("%v", m.openedFileText.TokenCursorPosition)
-		s += fmt.Sprintf("\nPages: %v", m.openedFileText.Pages)
+		s += fmt.Sprintf("\n%s %v", interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][9], m.openedFileText.Pages)
 		s += "\n"
-		s += fmt.Sprintf("Translation of selected word: %s", m.openedFileText.CurrentTranslate)
-		s += "\nError flag: " + m.currentError
-		s += "\nTo go back to the main menu, press 'b' || Press f to make a dictionary file. \nPress q to quit."
+		s += fmt.Sprintf("%s %s", interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][10], m.openedFileText.CurrentTranslate)
+		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][11] + m.currentError
+		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][12] + "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1]
 	} else if m.viewIndex == 2 {
-		s = "What language do you want to study?\n\n"
+		s = ""
+		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][0] + "\n\n"
 
 		// Iterate over our choices
 
@@ -351,7 +363,7 @@ func (m model) View() string {
 		}
 
 		// The footer
-		s += "\nPress q to quit.\n"
+		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1] + "\n"
 	}
 
 	// Send the UI for rendering

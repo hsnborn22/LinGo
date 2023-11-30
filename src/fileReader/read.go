@@ -366,7 +366,7 @@ como estas, how are you
 These files can then be exported and made into flashcards using Anki or memrise.
 */
 
-func MakeDictionary(data map[string]int, language string) {
+func MakeDictionary(data map[string]int, language string, bootLanguage string) {
 	// Path where we will save our dictionary file.
 	filename := fmt.Sprintf("languages/%s/dictionary.txt", language)
 	// Declare the finalString variable and initialize it to empty string "".
@@ -379,7 +379,7 @@ func MakeDictionary(data map[string]int, language string) {
 		// save it into the dictionary
 		if v == 1 || v == 2 {
 			// get the translation via the API
-			translation, _ := translator.Translate(k, language)
+			translation, _ := translator.Translate(k, language, bootLanguage)
 			// append to the finalString
 			finalString += fmt.Sprintf("%s, %s\n", k, translation)
 		}
