@@ -95,6 +95,12 @@ If the language you're studying is not currently on the list, you can add it ver
 1) Go in the languages folder, and create a folder with the name of your language (e.g create a folder named tokipona if you're studying tokipona).
 2) Once you have done this, head over to the languageHandler.go file in the "languageHandler" folder, and add the following 2 lines of code inside of both the LanguageMap2 and the LanguageMap variables:
 
+```go
+"your-language-name":"your-language-id"
+```
+The value on the right can really be whatever you want, since the ID is for the API calls for translation and text-to-speech, and your custom language probably isn't supported in these APIs.
+Now the new language you added should pop out in the menu, and you should be able to study it. Notice that the tts and translation could not work, since this depends on the APIs used for the 2 services.
+
 ### Changing the language of the interface and the translations:
 
 Maybe you're not super familiar with english and you want to study your target language in another language; maybe you could even want to use this app to study
@@ -109,11 +115,11 @@ english. There are 6 supported languages for your interface and translation so f
 
 Once you have done this, your app should now be in your desired language.
 
-```go
-"your-language-name":"your-language-id"
-```
-The value on the right can really be whatever you want, since the ID is for the API calls for translation and text-to-speech, and your custom language probably isn't supported in these APIs.
-Now the new language you added should pop out in the menu, and you should be able to study it. Notice that the tts and translation could not work, since this depends on the APIs used for the 2 services.
+## Contributing
+
+If there is anything that you would like to fix or add, I would be really grateful.
+
+[Check out the contribution guidelines](CONTRIBUTING.md)
 
 
 ## License
