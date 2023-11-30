@@ -95,6 +95,19 @@ If the language you're studying is not currently on the list, you can add it ver
 1) Go in the languages folder, and create a folder with the name of your language (e.g create a folder named tokipona if you're studying tokipona).
 2) Once you have done this, head over to the languageHandler.go file in the "languageHandler" folder, and add the following 2 lines of code inside of both the LanguageMap2 and the LanguageMap variables:
 
+### Changing the language of the interface and the translations:
+
+Maybe you're not super familiar with english and you want to study your target language in another language; maybe you could even want to use this app to study
+english. There are 6 supported languages for your interface and translation so far: english, spanish, french, russian, italian and german. To change your interface to one of these languages, just go to the bootLanguage.txt file in the "setup" folder, and change the value inside to 
+
+1) en for english
+2) it for italian
+3) es for spanish
+4) fr for french
+5) ru for russian
+6) de for german
+
+Once you have done this, your app should now be in your desired language.
 
 ```go
 "your-language-name":"your-language-id"
