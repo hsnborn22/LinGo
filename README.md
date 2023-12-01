@@ -10,6 +10,11 @@ https://github.com/hsnborn22/LinGo/assets/146590127/bd237dd4-11a7-4c0a-b9fe-fadc
 
 https://github.com/hsnborn22/LinGo/assets/146590127/c55b0472-71cd-4615-bed0-7f5786bf9309
 
+
+Here is a test of the application for thai:
+
+https://github.com/hsnborn22/LinGo/assets/146590127/1324d4d0-e99a-439a-b4d9-30207dbd2988
+
 ## Motivation:
 The motivation for the application comes from multiple sources; on a conceptual level, the application is based on the technique of language aquisition via text, a technique which is deemed to be highly effective by many linguists and polyglots. However, when you read a text in a language you're still learning, new words that you don't know and you don't know the pronunciation of are quite common: these occurences force you to move your attention away from the text, go to an online (or physical) dictionary, look up the meaning of the word, listen to its pronunciation exc. With this application (which really started out as a tool for myself precisely to speed up this process) you can do all of this without moving away from the text you're reading, making the process of learning by aquisition faster, easier and more enjoyable.
 
