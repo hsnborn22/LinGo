@@ -1,5 +1,5 @@
 # LinGo
-LinGo is a terminal based language aquisiton application, which allows you to learn languages while reading texts. The application allows you to load texts, read them, mark words with different colors based on your knowledge of them, listen the pronunciation of words on the spot and get a translation of each word without leaving the application; all the words you marked will then be saved locally on your machine and can be easily imported into anki or memrise flashcards. The application is entirely keyboard-based, making it way faster to use compared to the other alternatives. 
+LinGo is a terminal based language acquisiton application, which allows you to learn languages while reading texts. The application allows you to load texts, read them, mark words with different colors based on your knowledge of them, listen the pronunciation of words on the spot and get a translation of each word without leaving the application; all the words you marked will then be saved locally on your machine and can be easily imported into anki or memrise flashcards. The application is entirely keyboard-based, making it way faster to use compared to the other alternatives. 
 
 The application is coded in Go (also known as golang) alongside the ELM-architecture based framework [Bubbletea](https://github.com/charmbracelet/bubbletea).
 
@@ -34,8 +34,12 @@ Summing everything up, the goal of the app is to provide a lightweight, fast to 
 
 ## Languages supported:
 
-At the current stage the application supports virtually all languages that are "tokenized with spaces", i.e where words are separated by spaces (almost all european languages are like this, as well as many asian languages such as indonesian, tagalog,mongolian, kazakh exc.). The app also supports mandarin chinese (both simplified and traditional) both for tts and for in-text translations. Languages such as arabic, korean and japanese are currently not supported yet.
-If you want to study a less popular language which is still supported (maybe a conlang) such as lojban, toki pona or even your own conlang, a procedure to add it to the app will be explained after (don't worry it's very easy). However note that tts or translation might not be available. 
+The app now supports tts and instant translation while studying a text for over 50 languages, as well as text tokenization; it supports text tokenization also for languages which are not separated by spaces, such as thai, japanese, chinese and khmer via nlps. The tokenization for these languages, however, is implemented in python, so in order to make it work you will have to run a python scripts (which can be server_thai.py, server_japanese.py or server_khmer.py) before loading your text.
+
+
+The app also supports conlangs (like toki pona, lojban or even possibly your own) but the tts and instant translation tools might not work, so you'll just have to use it for tokenization and word memorization.  
+
+
 
 ## Installation:
 In this section we will see how to install the program and how to run it on your computer. I'll soon add downloadable binaries for most operating systems when I will expand the project a bit, so building from source will not be necessary anymore, but for now this is the only way to run the program.
