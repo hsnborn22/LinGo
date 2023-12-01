@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"unicode/utf8"
 
@@ -59,6 +60,12 @@ type Text struct {
 	// 2 --> meh
 	// 3 --> know well
 	CurrentTranslate string // This holds the value of the translation of the word we're currently hovering over (if we requested a translation with the key "5").
+}
+
+// Used to communicate with the japanese nlp tokenization python script.
+
+type MyData struct {
+	Tokens []string `json:"tokens"`
 }
 
 /*
@@ -153,6 +160,45 @@ func TokenizeChineseText(text string) []string {
 	}
 	// Return our slice of tokens.
 	return output
+}
+
+/*
+TokenizeJapaneseText function:
+
+This function provides a tokenization for japanese text (which is not a language that employs spaces to separate words).
+*/
+
+func TokenizeJapaneseText(text string) []string {
+	serverAddr := "127.0.0.1:8080"
+
+	conn, err := net.Dial("tcp", serverAddr)
+	if err != nil {
+		fmt.Println("Error connecting:", err)
+		return []string{}
+	}
+	defer conn.Close()
+
+	conn.Write([]byte(text))
+
+	buffer := make([]byte, 262144)
+	bytesRead, err := conn.Read(buffer)
+	if err != nil {
+		fmt.Println("Error reading:", err)
+		return []string{}
+	}
+
+	receivedData := string(buffer[:bytesRead])
+	// Create an instance of your Go struct
+	var myData MyData
+
+	// Unmarshal the JSON data into the struct
+	err2 := json.Unmarshal([]byte(receivedData), &myData)
+	if err2 != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return []string{}
+	}
+	fmt.Println(myData.Tokens)
+	return myData.Tokens
 }
 
 /*
@@ -417,7 +463,7 @@ func InitText(filename string, language string) Text {
 	var currentCursor int = 0
 	// if the file has some characters which are not empty spaces, tabs or new lines
 	// and is not chinese, then do the following
-	if !CheckIfContentIsNil(content) && language != "chinese" {
+	if !CheckIfContentIsNil(content) && language != "chinese" && language != "japanese" && language != "thai" {
 		// Calculate the length of the content inside the file.
 		var contentLength = len(content)
 		// Tokenize the text (i.e split it in tokens) using the TokenizeText function
@@ -437,6 +483,26 @@ func InitText(filename string, language string) Text {
 		// This will actually count the number of characters, in contrast to the "len" function which will just return the byte length.
 		var contentLength = utf8.RuneCountInString(content)
 		TokenList := TokenizeChineseText(content)
+		pageList := DivideInPages(TokenList)
+		var wordsMap = InitMap(TokenList, language)
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
+		return outputText
+	} else if !CheckIfContentIsNil(content) && language == "japanese" {
+		// Calculate the length of the content inside the file.
+		// In this case, since we're dealing with chinese, we will have to use the utf8.RuneCountInString method instead.
+		// This will actually count the number of characters, in contrast to the "len" function which will just return the byte length.
+		var contentLength = utf8.RuneCountInString(content)
+		TokenList := TokenizeJapaneseText(content)
+		pageList := DivideInPages(TokenList)
+		var wordsMap = InitMap(TokenList, language)
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
+		return outputText
+	} else if !CheckIfContentIsNil(content) && language == "thai" {
+		// Calculate the length of the content inside the file.
+		// In this case, since we're dealing with chinese, we will have to use the utf8.RuneCountInString method instead.
+		// This will actually count the number of characters, in contrast to the "len" function which will just return the byte length.
+		var contentLength = utf8.RuneCountInString(content)
+		TokenList := TokenizeJapaneseText(content)
 		pageList := DivideInPages(TokenList)
 		var wordsMap = InitMap(TokenList, language)
 		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
