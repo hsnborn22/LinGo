@@ -463,7 +463,7 @@ func InitText(filename string, language string) Text {
 	var currentCursor int = 0
 	// if the file has some characters which are not empty spaces, tabs or new lines
 	// and is not chinese, then do the following
-	if !CheckIfContentIsNil(content) && language != "chinese" && language != "japanese" && language != "thai" {
+	if !CheckIfContentIsNil(content) && language != "chinese" && language != "japanese" && language != "thai" && language != "khmer" {
 		// Calculate the length of the content inside the file.
 		var contentLength = len(content)
 		// Tokenize the text (i.e split it in tokens) using the TokenizeText function
@@ -487,7 +487,7 @@ func InitText(filename string, language string) Text {
 		var wordsMap = InitMap(TokenList, language)
 		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
 		return outputText
-	} else if !CheckIfContentIsNil(content) && language == "japanese" {
+	} else if !CheckIfContentIsNil(content) && (language == "japanese" || language == "khmer" || language == "thai") {
 		// Calculate the length of the content inside the file.
 		// In this case, since we're dealing with chinese, we will have to use the utf8.RuneCountInString method instead.
 		// This will actually count the number of characters, in contrast to the "len" function which will just return the byte length.
