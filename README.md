@@ -34,7 +34,7 @@ Summing everything up, the goal of the app is to provide a lightweight, fast to 
 
 ## Languages supported:
 
-The app now supports tts and instant translation while studying a text for over 50 languages, as well as text tokenization; it supports text tokenization also for languages which are not separated by spaces, such as thai, japanese, chinese and khmer via nlps. The tokenization for these languages, however, is implemented in python, so in order to make it work you will have to run a python scripts (which can be server_thai.py, server_japanese.py or server_khmer.py) before loading your text.
+The app now supports tts and instant translation while studying a text for over 50 languages, as well as text tokenization; it supports text tokenization also for languages which are not separated by spaces, such as thai, japanese, chinese and khmer via nlps. The tokenization for these languages, however, is implemented in python, so in order to make it work you will have to run a python script (which can be server_thai.py, server_japanese.py or server_khmer.py) before loading your text.
 
 
 The app also supports conlangs (like toki pona, lojban or even possibly your own) but the tts and instant translation tools might not work, so you'll just have to use it for tokenization and word memorization.  
