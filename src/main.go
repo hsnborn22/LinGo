@@ -85,8 +85,11 @@ type model struct {
 }
 
 func initialModel() model {
+	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
+	bootLangString := string(bootLang)
+	languageTitle := interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[bootLangString]][0]
 	columns := []table.Column{
-		{Title: "Select a language", Width: 20},
+		{Title: languageTitle, Width: 35},
 	}
 	directoryPath := "languages"
 
@@ -117,8 +120,9 @@ func initialModel() model {
 		Background(lipgloss.Color("57")).
 		Bold(false)
 	t.SetStyles(s)
+	textTitle := interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[bootLangString]][3]
 	columns2 := []table.Column{
-		{Title: "Select a text", Width: 20},
+		{Title: textTitle, Width: 35},
 	}
 
 	var rows2 []table.Row
@@ -136,8 +140,6 @@ func initialModel() model {
 	)
 
 	t2.SetStyles(s)
-	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
-	bootLangString := string(bootLang)
 	return model{
 		// Our to-do list is a grocery list
 		choices:       filePaths,
@@ -333,7 +335,7 @@ func (m model) View() string {
 	if m.viewIndex == 0 {
 		// The header
 		s = interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][2] + m.currentLanguage + "\n"
-		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][3]
+		s += "\n"
 
 		// Iterate over our choices
 
