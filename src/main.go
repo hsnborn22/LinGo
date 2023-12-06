@@ -138,8 +138,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.openedFileText = text
 			case "f":
 				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
-				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				fileReader.MakeDictionary(dictionary, currentlLanguageId, m.bootLanguage)
+				fileReader.MakeDictionary(dictionary, m.currentLanguage, m.bootLanguage)
 			}
 		}
 
