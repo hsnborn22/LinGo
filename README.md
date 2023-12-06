@@ -49,7 +49,18 @@ The app also supports conlangs (like toki pona, lojban or even possibly your own
 
 
 ## Installation:
-In this section we will see how to install the program and how to run it on your computer. I'll soon add downloadable binaries for most operating systems when I will expand the project a bit, so building from source will not be necessary anymore, but for now this is the only way to run the program.
+In this section we will see how to install the program and how to run it on your computer. You can install LinGo in 2 ways:
+
+1) Installing the binaries (executables)
+
+2) Building from source
+
+I already state that building from source will be considerably harder, so I recommend doing so if and only if you plan on modifying and contributing to the software. 
+
+### Downloading the binaries
+
+Just go to the [tags tab](https://github.com/hsnborn22/LinGo/tags), and then select the latest version. From here, download the archive file for your operating system (there are binaries for windows, linux and macOS).
+Once you have downloaded the zip, unzip it whenever you want, enter in the folder and execute the executable file: you are ready to go! The app should be already working. 
 
 ### Building from source
 To build LinGo from source, you will first need a go compiler on your machine. The go version that was used to code LinGo is the (currently) latest version go 1.21.4 . It is preferred that you use go 1.21.4, even though it probably works even with older versions (haven't checked yet). With this said, if you don't have go installed on your machine, you can follow the installation guide on [their official website](https://go.dev/doc/install) (they have a guide for linux,macOS and windows). Once you have installed go on your machine, download the source code from the repository by clicking on the green "code" button on the top, and then "download zip" 
