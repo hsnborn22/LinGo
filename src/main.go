@@ -12,7 +12,9 @@ import (
 	"example.com/packages/languageHandler"
 	"example.com/packages/terminalSize"
 	"example.com/packages/translator"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -27,6 +29,10 @@ var (
 	semiKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFCA3A"))
 	knownItemStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#00b300"))
 )
+
+var baseStyle = lipgloss.NewStyle().
+	BorderStyle(lipgloss.NormalBorder()).
+	BorderForeground(lipgloss.Color("240"))
 
 func visitFile(fp string, fi os.DirEntry, err error) error {
 	if err != nil {
@@ -74,23 +80,74 @@ type model struct {
 	currentLanguage string
 	currentError    string
 	bootLanguage    string
+	languageTable   table.Model
+	textTable       table.Model
 }
 
 func initialModel() model {
-	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
-	bootLangString := string(bootLang)
+	columns := []table.Column{
+		{Title: "Select a language", Width: 20},
+	}
 	directoryPath := "languages"
 
 	directories, _ := listDirectories(directoryPath)
 	directories = directories[1:]
+	var rows []table.Row
+
+	for _, v := range directories {
+		e := table.Row{v[10:]}
+		rows = append(rows, e)
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(7),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+	columns2 := []table.Column{
+		{Title: "Select a text", Width: 20},
+	}
+
+	var rows2 []table.Row
+
+	for _, v := range filePaths {
+		e := table.Row{v[6:]}
+		rows2 = append(rows2, e)
+	}
+
+	t2 := table.New(
+		table.WithColumns(columns2),
+		table.WithRows(rows2),
+		table.WithFocused(true),
+		table.WithHeight(7),
+	)
+
+	t2.SetStyles(s)
+	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
+	bootLangString := string(bootLang)
 	return model{
 		// Our to-do list is a grocery list
-		choices:      filePaths,
-		choices2:     directories,
-		viewIndex:    2,
-		cursor2:      0,
-		currentError: "",
-		bootLanguage: bootLangString,
+		choices:       filePaths,
+		choices2:      directories,
+		viewIndex:     2,
+		cursor2:       0,
+		currentError:  "",
+		bootLanguage:  bootLangString,
+		languageTable: t,
+		textTable:     t2,
 	}
 }
 
@@ -100,6 +157,8 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.languageTable, _ = m.languageTable.Update(msg)
+	m.textTable, _ = m.textTable.Update(msg)
 	switch m.viewIndex {
 	case 0:
 		switch msg := msg.(type) {
@@ -133,7 +192,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// the selected state for the item that the cursor is pointing at.
 			case "enter", " ":
 				m.viewIndex = 1
-				m.openedFile = m.choices[m.cursor]
+				m.openedFile = "texts/" + m.textTable.SelectedRow()[0]
 				text := fileReader.InitText(m.openedFile, m.currentLanguage)
 				m.openedFileText = text
 			case "f":
@@ -259,7 +318,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// the selected state for the item that the cursor is pointing at.
 			case "enter", " ":
 				m.viewIndex = 0
-				m.currentLanguage = m.choices2[m.cursor2][10:]
+				m.currentLanguage = m.languageTable.SelectedRow()[0]
 
 			}
 
@@ -278,20 +337,7 @@ func (m model) View() string {
 
 		// Iterate over our choices
 
-		for i, choice := range m.choices {
-
-			// Is the cursor pointing at this choice?
-			cursor := " " // no cursor
-			if m.cursor == i {
-				cursor = ">" // cursor!
-			}
-
-			// Is this choice selected?
-			var checked = "x" // selected!
-
-			// Render the row
-			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-		}
+		s += baseStyle.Render(m.textTable.View())
 
 		// The footer
 		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][4]
@@ -342,28 +388,7 @@ func (m model) View() string {
 		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][11] + m.currentError
 		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][12] + "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1]
 	} else if m.viewIndex == 2 {
-		s = ""
-		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][0] + "\n\n"
-
-		// Iterate over our choices
-
-		for i, choice := range m.choices2 {
-
-			// Is the cursor pointing at this choice?
-			cursor := " " // no cursor
-			if m.cursor2 == i {
-				cursor = ">" // cursor!
-			}
-
-			// Is this choice selected?
-			var checked = "x" // selected!
-
-			// Render the row
-			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice[10:])
-		}
-
-		// The footer
-		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1] + "\n"
+		return baseStyle.Render(m.languageTable.View()) + "\n"
 	}
 
 	// Send the UI for rendering
