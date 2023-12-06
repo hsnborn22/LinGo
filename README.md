@@ -87,6 +87,25 @@ This will install all the dependencies necessary for the application to work. On
 go run main.go
 ```
 
+## Getting thai,japanese,chinese,khmer,lao and burmese to work:
+
+It doesn't matter if you installed the app using the binaries or built it from source, if you want to make the "scriptio continua" languages work, you will have to run the respective server for the language in the scriptioContinuaTokenization folder:
+To do so you will have to have python installed on your computer; for a quick installation guide [go here](https://realpython.com/installing-python/).
+
+Once you have python installed and set up on your computer, go in the scriptioContinuaTokenization folder and type:
+
+```bash
+pip install -r requirements.txt
+```
+
+Then run the server for your language: for example, supposing that you want to study japanese, you would have to run:
+
+```bash
+python3 server_japanese.py
+```
+
+**Note**: The path variable for python might be different, so don't panic if this line of code above doesn't work. For you it might be "python server_japanese.py".
+
 ## Using the app:
 When booting the app, you will be greeted by a menu that lists all the pre-created languages you can study (all these languages have tts and instant translation support). You can navigate these menu with the arrow keys &darr; and &uarr; .
 Alternatively, you can navigate it using the j and k keys (VIM style). To select the language of your choice, move the cursor to the language, and press the key &crarr; (enter).
