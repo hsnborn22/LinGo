@@ -92,6 +92,10 @@ go run main.go
 It doesn't matter if you installed the app using the binaries or built it from source, if you want to make the "scriptio continua" languages work, you will have to run the respective server for the language in the scriptioContinuaTokenization folder:
 To do so you will have to have python installed on your computer; for a quick installation guide [go here](https://realpython.com/installing-python/).
 
+
+This is because the tokenization for most of these languages is implemented via nlp models with deep neural networks, and python has a wider support for ML/AI/nlp libraries; for this reason I decided to inter-op the python tokenization code with the Go main application via a tcp/ip socket.
+
+
 Once you have python installed and set up on your computer, go in the scriptioContinuaTokenization folder and type:
 
 ```bash
