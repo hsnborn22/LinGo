@@ -3,6 +3,8 @@ LinGo is a terminal based language acquisiton application, which allows you to l
 
 To look at the full documentation, check the [LinGo website](https://lingotext.github.io/).
 
+If the documentation was not clear enough, check out [these youtube tutorials](https://www.youtube.com/watch?v=BvBf88N-s6c&list=PL5_YAjcfw5ollApUQ3QYHDFSXzKiiKWPU).
+
 The application is coded in Go (also known as golang) alongside the ELM-architecture based framework [Bubbletea](https://github.com/charmbracelet/bubbletea).
 
 Below some tests to show how the application works.
