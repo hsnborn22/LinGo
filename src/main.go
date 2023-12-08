@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"example.com/packages/audioPlayer"
 	"example.com/packages/fileReader"
@@ -87,6 +88,10 @@ type model struct {
 func initialModel() model {
 	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
 	bootLangString := string(bootLang)
+	stripped := strings.ReplaceAll(bootLangString, "\t", "")
+	stripped = strings.ReplaceAll(stripped, " ", "")
+	stripped = strings.ReplaceAll(stripped, "\n", "")
+	bootLangString = stripped
 	languageTitle := interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[bootLangString]][0]
 	columns := []table.Column{
 		{Title: languageTitle, Width: 35},
