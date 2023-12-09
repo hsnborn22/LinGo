@@ -112,6 +112,18 @@ python3 server_japanese.py
 
 **Note**: The path variable for python might be different, so don't panic if this line of code above doesn't work. For you it might be "python server_japanese.py".
 
+
+If you can't get the python server to run on windows because you're encountering errors with the pip install -r requirements.txt command, try to input in sequence the following lines of code (in this way you will install all the required libraries separately):
+
+```bash
+pip install -U pip setuptools wheel
+pip install -U spacy
+python -m spacy download zh_core_web_sm
+python -m spacy download ja_core_news_sm
+pip install pythainlp
+pip install laonlp
+```
+
 ## Using the app:
 When booting the app, you will be greeted by a menu that lists all the pre-created languages you can study (all these languages have tts and instant translation support). You can navigate these menu with the arrow keys &darr; and &uarr; .
 Alternatively, you can navigate it using the j and k keys (VIM style). To select the language of your choice, move the cursor to the language, and press the key &crarr; (enter).
