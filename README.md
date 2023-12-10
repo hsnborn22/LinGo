@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/hsnborn22/LinGo/main/imgs/desktopIcon.png"/>
+  <img src="https://avatars.githubusercontent.com/u/152698586?s=400&u=3b941fad62191efd07454c33b2ac2e9596500185"/>
   <h1>LinGo</h1>
 </div>
 
