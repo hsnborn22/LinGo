@@ -34,6 +34,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"unicode/utf8"
 
 	"example.com/packages/languageHandler"
@@ -60,7 +61,8 @@ type Text struct {
 	// 1 --> don't know
 	// 2 --> meh
 	// 3 --> know well
-	CurrentTranslate string // This holds the value of the translation of the word we're currently hovering over (if we requested a translation with the key "5").
+	CurrentTranslate    string // This holds the value of the translation of the word we're currently hovering over (if we requested a translation with the key "5").
+	CurrentLatinization string
 }
 
 // Used to communicate with the japanese nlp tokenization python script.
@@ -179,7 +181,11 @@ func TokenizeJapaneseText(text string) []string {
 	}
 	defer conn.Close()
 
-	conn.Write([]byte(text))
+	stripped := strings.ReplaceAll(text, "\t", "")
+	stripped = strings.ReplaceAll(stripped, " ", "")
+	stripped = strings.ReplaceAll(stripped, "\n", "")
+
+	conn.Write([]byte(stripped))
 
 	buffer := make([]byte, 262144)
 	bytesRead, err := conn.Read(buffer)
