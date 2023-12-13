@@ -2,4 +2,5 @@ Things to do:
 
 1) Refactor the code in the main file a little more.
 2) Add automated testing to the various micro-components of the app
-
+3) Improve the cyrillic and greek latinization, in particular:
+Ψυχή would get latinized to: PSychi, but it would be nicer if it was Psychi.
