@@ -21,6 +21,31 @@ var cyrillicToLatin map[string]string = map[string]string{"А": "A", "Б": "B", 
 	"Ә": "A", "Ғ": "G", "Қ": "Q", "ә": "a", "ғ": "g", "қ": "q", "ң": "n",
 }
 
+// Define the mapping of Hindi characters to Latin characters
+var HindiReplacements = map[string]string{
+	"क": "k", "ख": "kh", "ग": "ga", "घ": "gh", "ङ": "ng",
+	"च": "ch", "छ": "chh", "ज": "j", "झ": "jh", "ञ": "ny",
+	"ट": "t", "ठ": "th", "ड": "d", "ढ": "dh", "ण": "n",
+	"त": "t", "थ": "th", "द": "d", "ध": "dh", "न": "n",
+	"प": "p", "फ": "f", "ब": "b", "भ": "bh", "म": "m",
+	"य": "y", "र": "r", "ल": "l", "व": "v", "श": "sh",
+	"ष": "s", "स": "s", "ह": "h", "क़": "k", "ख़": "kh",
+	"ग़": "g", "ऩ": "n", "ड़": "d", "ढ़": "rh",
+	"ऱ": "r", "य़": "ye", "ळ": "l", "ऴ": "ll", "फ़": "f",
+	"ज़": "z", "ऋ": "ri", "ा": "aa", "ि": "i", "ी": "i",
+	"ु": "u", "ू": "u", "ॅ": "e", "ॆ": "e", "े": "e",
+	"ै": "ai", "ॉ": "o", "ॊ": "o", "ो": "o", "ौ": "au",
+	"अ": "a", "आ": "aa", "इ": "i", "ई": "ee", "उ": "u",
+	"ऊ": "oo", "ए": "e", "ऐ": "ai", "ऑ": "au", "ओ": "o",
+	"औ": "au", "ँ": "n", "ं": "n", "ः": "ah", "़": "e",
+	"्": "", "०": "0", "१": "1", "२": "2", "३": "3",
+	"४": "4", "५": "5", "६": "6", "७": "7", "८": "8",
+	"९": "9", "।": ".", "ऍ": "e", "ृ": "ri", "ॄ": "rr",
+	"ॠ": "r", "ऌ": "l", "ॣ": "l", "ॢ": "l", "ॡ": "l",
+	"ॿ": "b", "ॾ": "d", "ॽ": "", "ॼ": "j", "ॻ": "g",
+	"ॐ": "om", "ऽ": "'", "e.a": "a", "\n": "\n",
+}
+
 // This is the map that contains how greek characters are mapped phonetically to
 // latin characters.
 
@@ -73,6 +98,74 @@ var greekToLatin = map[string]string{
 	"χ": "ch",
 	"ψ": "ps",
 	"ω": "o",
+}
+
+// Mapping of Arabic to Latin characters
+var arabicToLatin = map[string]string{
+	"ا":  "a",
+	"أ":  "a",
+	"آ":  "a",
+	"إ":  "e",
+	"ب":  "b",
+	"ت":  "t",
+	"ث":  "th",
+	"ج":  "j",
+	"ح":  "h",
+	"خ":  "kh",
+	"د":  "d",
+	"ذ":  "d",
+	"ر":  "r",
+	"ز":  "z",
+	"س":  "s",
+	"ش":  "sh",
+	"ص":  "s",
+	"ض":  "d",
+	"ط":  "t",
+	"ظ":  "z",
+	"ع":  "'e",
+	"غ":  "gh",
+	"ف":  "f",
+	"ق":  "q",
+	"ك":  "k",
+	"ل":  "l",
+	"م":  "m",
+	"ن":  "n",
+	"ه":  "h",
+	"و":  "w",
+	"ي":  "y",
+	"ى":  "a",
+	"ئ":  "'e",
+	"ء":  "'",
+	"ؤ":  "'e",
+	"لا": "la",
+	"ة":  "h",
+	"؟":  "?",
+	"!":  "!",
+	"ـ":  "",
+	"،":  ",",
+	"َ":  "a",
+	"ُ":  "u",
+	"ِ":  "e",
+	"ٌ":  "un",
+	"ً":  "an",
+	"ٍ":  "en",
+	"ّ":  "",
+}
+
+// Define the mapping of Farsi characters to Latin characters
+var FarsiReplacements = map[string]string{
+	"ا": "a", "أ": "a", "آ": "a", "إ": "e", "ب": "b",
+	"ت": "t", "ث": "th", "ج": "j", "ح": "h", "خ": "kh",
+	"د": "d", "ذ": "d", "ر": "r", "ز": "z", "س": "s",
+	"ش": "sh", "ص": "s", "ض": "d", "ط": "t", "ظ": "z",
+	"ع": "'e", "غ": "gh", "ف": "f", "ق": "q", "ك": "k",
+	"ل": "l", "م": "m", "ن": "n", "ه": "h", "و": "w",
+	"ي": "y", "ى": "a", "ئ": "'e", "ء": "'", "ؤ": "'e",
+	"لا": "la", "ک": "ke", "پ": "pe", "چ": "che", "ژ": "je",
+	"گ": "gu", "ی": "a", "ٔ": "", "ة": "h", "؟": "?",
+	"!": "!", "ـ": "", "،": ",", "َ‎": "a", "ُ": "u",
+	"ِ‎": "e", "ٌ": "un", "ً": "an", "ٍ": "en", "ّ": "",
+	"\n": "\n",
 }
 
 // The following functions are responsible for latinizations of various scripts; it is specified in the name.
@@ -149,6 +242,90 @@ func LatinizeJapanese(text string) string {
 	// Find and print the value inside the second <td> element
 	output = findSecondTdValue(doc)
 	return output
+}
+
+// Latinization of Arabic
+
+func LatinizeArabic(input string) string {
+
+	// Replace Arabic characters with Latin characters
+	for arChar, latinChar := range arabicToLatin {
+		input = strings.ReplaceAll(input, arChar, latinChar)
+	}
+
+	return input
+}
+
+// Latinization of hindi
+
+func LatinizeHindi(input string) string {
+	// Replace Hindi characters with Latin characters
+	for hindiChar, latinChar := range HindiReplacements {
+		input = strings.ReplaceAll(input, hindiChar, latinChar)
+	}
+
+	return input
+}
+
+// Latinization of farsi (persian)
+
+func LatinizePersian(input string) string {
+	// Replace Farsi characters with Latin characters
+	for farsiChar, latinChar := range FarsiReplacements {
+		input = strings.ReplaceAll(input, farsiChar, latinChar)
+	}
+
+	return input
+}
+
+// Function to latinize hebrew text.
+
+func LatinizeHebrew(input string) string {
+	sym := input
+	sym = strings.ReplaceAll(sym, "א", "a")
+	sym = strings.ReplaceAll(sym, "ב", "b")
+	sym = strings.ReplaceAll(sym, "ג", "g")
+	sym = strings.ReplaceAll(sym, "ד", "d")
+	sym = strings.ReplaceAll(sym, "ה", "h")
+	sym = strings.ReplaceAll(sym, "ו", "v")
+	sym = strings.ReplaceAll(sym, "ז", "z")
+	sym = strings.ReplaceAll(sym, "ח", "h")
+	sym = strings.ReplaceAll(sym, "ט", "t")
+	sym = strings.ReplaceAll(sym, "י", "y")
+	sym = strings.ReplaceAll(sym, "ך", "k")
+	sym = strings.ReplaceAll(sym, "כ", "k")
+	sym = strings.ReplaceAll(sym, "ל", "l")
+	sym = strings.ReplaceAll(sym, "ם", "m")
+	sym = strings.ReplaceAll(sym, "מ", "m")
+	sym = strings.ReplaceAll(sym, "ן", "n")
+	sym = strings.ReplaceAll(sym, "נ", "n")
+	sym = strings.ReplaceAll(sym, "ס", "s")
+	sym = strings.ReplaceAll(sym, "ע", "'e")
+	sym = strings.ReplaceAll(sym, "ף", "p")
+	sym = strings.ReplaceAll(sym, "פ", "p")
+	sym = strings.ReplaceAll(sym, "ץ", "ts")
+	sym = strings.ReplaceAll(sym, "צ", "ts")
+	sym = strings.ReplaceAll(sym, "ק", "q")
+	sym = strings.ReplaceAll(sym, "ר", "r")
+	sym = strings.ReplaceAll(sym, "ש", "sh")
+	sym = strings.ReplaceAll(sym, "ת", "t")
+	sym = strings.ReplaceAll(sym, "ב", "b")
+	sym = strings.ReplaceAll(sym, "כ", "k")
+	sym = strings.ReplaceAll(sym, "פ", "p")
+	sym = strings.ReplaceAll(sym, "ת", "t")
+	sym = strings.ReplaceAll(sym, "ו", "u")
+	sym = strings.ReplaceAll(sym, "ו", "v")
+	sym = strings.ReplaceAll(sym, "וֹ", "o")
+	sym = strings.ReplaceAll(sym, "ָ", "a")
+	sym = strings.ReplaceAll(sym, "ַ", "a")
+	sym = strings.ReplaceAll(sym, "ּ", "i")
+	sym = strings.ReplaceAll(sym, "ײ", "i")
+	sym = strings.ReplaceAll(sym, "װ", "y")
+	sym = strings.ReplaceAll(sym, "ױ", "yi")
+	sym = strings.ReplaceAll(sym, "ֿ", "a")
+	sym = strings.ReplaceAll(sym, "־", "")
+	sym = strings.ReplaceAll(sym, "\n", "\n")
+	return sym
 }
 
 func findSecondTdValue(n *html.Node) string {
@@ -235,6 +412,14 @@ func LatinizeText(text string, data map[string][]string, language string) string
 		return LatinizeJapanese(text)
 	case "korean":
 		return LatinizeKorean(text)
+	case "arabic":
+		return LatinizeArabic(text)
+	case "hindi":
+		return LatinizeHindi(text)
+	case "persian":
+		return LatinizePersian(text)
+	case "hebrew":
+		return LatinizeHebrew(text)
 	default:
 		// else just returns the text; I still need to cover a lot of non-latin scripts.
 		return text
