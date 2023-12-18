@@ -3,7 +3,9 @@
   <h1>LinGo</h1>
 </div>
 
-LinGo is a terminal based language acquisiton application, which allows you to learn languages while reading texts. The application allows you to load texts, read them, mark words with different colors based on your knowledge of them, listen the pronunciation of words on the spot and get a translation of each word without leaving the application; all the words you marked will then be saved locally on your machine and can be easily imported into anki or memrise flashcards. The application is entirely keyboard-based, making it way faster to use compared to the other alternatives. 
+LinGo is a terminal based language acquisiton application, which allows you to learn languages while reading texts. The application allows you to load texts, read them, mark words with different colors based on your knowledge of them, listen the pronunciation of words on the spot, latinize each word (if the script is not a latin script) and get a translation of each word without leaving the application; all the words you marked will then be saved locally on your machine and can be easily imported into anki or memrise flashcards. The application is entirely keyboard-based, making it way faster to use compared to the other alternatives. 
+
+The app also allows you to visualize the stroke order for japanese kanji and chinese hanzi; you can do so by pressing the key "7" while hovering over a character (if the cursor is hovering over a collection of characters it will just allow you to visualize the stroke order for all the characters).
 
 To look at the full documentation, check the [LinGo website](https://lingotext.github.io/).
 
@@ -148,6 +150,8 @@ Ok but now you might ask: what is the cursor used for? While hovering a word wit
 * 0 --> list the word as ignored (all new words are by default set as ignored, since it's up to you to decide how well you know it and if you know it or not. The color of the word will be white)
 * 4 --> Listen to the pronunciation of the word with text-to-speech
 * 5 --> Give an instant translation of the word in your language (if you're reading this documentation in english then you probably wish to use the app in english too).
+* 6 --> Latinize the current word; the app currently supports latinization for: chinese, japanese, korean, arabic, greek, hindi, persian and all languages that use cyrillic.
+* 7 --> Get stroke order of the character (only works for chinese and japanese)
 
 
 This data about words is then stored locally in json files inside the languages folder (specifically, the file is languages/"language name"/words.json).
