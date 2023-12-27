@@ -456,6 +456,62 @@ func MakeDictionary(data map[string]int, language string, bootLanguage string) {
 }
 
 /*
+MakeAltDictionary function
+
+It differs from the MakeDictionary function since this makes flashcards with latinization included too
+This function is responsible for the actual creation of the dictionary file that can then
+be exported to Anki,memrise and other flashcard systems. It takes in a map[string]int which represents
+the levels of knowledge of determinate words, and the target language we're studying.
+With these informations it then creates a file that contains couplets of the form:
+
+<word in language we're studying>, <word in language we understand> (<latinization>)
+
+Example:
+
+привет, hello (privet)
+...
+
+These files can then be exported and made into flashcards using Anki or memrise.
+*/
+
+func MakeAltDictionary(data map[string]int, language string, bootLanguage string, hanziData map[string][]string) {
+	// Path where we will save our dictionary file.
+	filename := fmt.Sprintf("languages/%s/dictionary.txt", language)
+	// Declare the finalString variable and initialize it to empty string "".
+	// this is the content (as a string) of our dictionary.txt file.
+	finalString := ""
+	finalString += "\n"
+	// Loop through the key value pairs of the data map we passed in.
+	for k, v := range data {
+		// If we don't know a word (i.e if it has code 1 or 2)
+		// save it into the dictionary
+		if v == 1 || v == 2 {
+			// get the translation via the API
+			languageId := languageHandler.LanguageMap2[language]
+			translation, _ := translator.Translate(k, languageId, bootLanguage)
+			latinization := translator.LatinizeText(k, hanziData, language)
+			// append to the finalString
+			finalString += fmt.Sprintf("%s, %s (%s)\n", k, translation, latinization)
+		}
+	}
+	// Use the os.Openfile to open file; if it doesnt exist, it automatically creates it.
+	file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err2 != nil {
+		fmt.Println("Error opening file:", err2)
+		return
+	}
+	defer file.Close() // Close the file when we're done
+
+	// Write data to the file
+	_, err3 := file.Write([]byte(finalString))
+
+	if err3 != nil {
+		fmt.Println("Error writing to file:", err3)
+		return
+	}
+}
+
+/*
 InitText function:
 input: the name of the file we opened(string) and the current language we're studying (a string).
 output: a Text object
