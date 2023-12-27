@@ -21,6 +21,17 @@ var cyrillicToLatin map[string]string = map[string]string{"А": "A", "Б": "B", 
 	"Ә": "A", "Ғ": "G", "Қ": "Q", "ә": "a", "ғ": "g", "қ": "q", "ң": "n",
 }
 
+// This is the map that contains how to convert georgian script to latin
+var georgianToLatin = map[rune]string{
+	'ა': "a", 'ბ': "b", 'გ': "g", 'დ': "d", 'ე': "e",
+	'ვ': "v", 'ზ': "z", 'თ': "t", 'ი': "i", 'კ': "k'",
+	'ლ': "l", 'მ': "m", 'ნ': "n", 'ო': "o", 'პ': "p'",
+	'ჟ': "zh", 'რ': "r", 'ს': "s", 'ტ': "t'", 'უ': "u",
+	'ფ': "p", 'ქ': "k", 'ღ': "gh", 'ყ': "q'", 'შ': "sh",
+	'ჩ': "ch", 'ც': "ts", 'ძ': "dz", 'წ': "ts'", 'ჭ': "ch'",
+	'ხ': "kh", 'ჯ': "j", 'ჰ': "h",
+}
+
 // Define the mapping of Hindi characters to Latin characters
 var HindiReplacements = map[string]string{
 	"क": "k", "ख": "kh", "ग": "ga", "घ": "gh", "ङ": "ng",
@@ -168,6 +179,214 @@ var FarsiReplacements = map[string]string{
 	"\n": "\n",
 }
 
+// Basic mapping from Burmese characters to Latin alphabet.
+var burmeseToLatinMap = map[string]string{
+	// Consonants
+	"က": "k", "ခ": "kh", "ဂ": "g", "ဃ": "gh", "င": "ng",
+	"စ": "c", "ဆ": "ch", "ဇ": "z", "ဈ": "j", "ဉ": "ny",
+	"ည": "ny", "ဋ": "t", "ဌ": "th", "ဍ": "d", "ဎ": "dh",
+	"ဏ": "n", "တ": "t", "ထ": "th", "ဒ": "d", "ဓ": "dh",
+	"န": "n", "ပ": "p", "ဖ": "ph", "ဗ": "b", "ဘ": "bh",
+	"မ": "m", "ယ": "y", "ရ": "r", "လ": "l", "ဝ": "w",
+	"သ": "s", "ဟ": "h", "ဠ": "l", "အ": "a",
+
+	// Independent vowels
+	"ဣ": "i", "ဤ": "ī", "ဥ": "u", "ဦ": "ū", "ဧ": "e",
+	"ဩ": "o", "ဪ": "au",
+
+	// Dependent vowel signs
+	"ာ": "ā", "ိ": "i", "ီ": "ī", "ု": "u", "ူ": "ū",
+	"ေ": "e", "ဲ": "ai", "ံ": "an", "့": "", "း": "",
+	"္": "", // Used for stacking consonants
+	"်": "", // Kill the inherent vowel of a consonant
+
+	// Various diacritics
+	"ျ": "ya", "ြ": "ra", "ွ": "wa", "ှ": "ha",
+	"ဿ": "sa", "၀": "la",
+
+	// Other symbols
+	"၊": ",", "။": ".",
+
+	// Numbers
+	"၁": "1", "၂": "2", "၃": "3", "၄": "4",
+	"၅": "5", "၆": "6", "၇": "7", "၈": "8", "၉": "9",
+}
+
+// Map that contains info about how to latinize armenian texts
+var armenianToLatin = map[rune]string{
+	'Ա': "A", 'ա': "a",
+	'Բ': "B", 'բ': "b",
+	'և': "ev",
+	'Գ': "G", 'գ': "g",
+	'Դ': "D", 'դ': "d",
+	'Ե': "E", 'ե': "e",
+	'Զ': "Z", 'զ': "z",
+	'Է': "E", 'է': "e",
+	'Ը': "Y", 'ը': "y",
+	'Թ': "T'", 'թ': "t'",
+	'Ժ': "Zh", 'ժ': "zh",
+	'Ի': "I", 'ի': "i",
+	'Լ': "L", 'լ': "l",
+	'Խ': "Kh", 'խ': "kh",
+	'Ծ': "Ts", 'ծ': "ts",
+	'Կ': "K", 'կ': "k",
+	'Հ': "H", 'հ': "h",
+	'Ձ': "Dz", 'ձ': "dz",
+	'Ղ': "Gh", 'ղ': "gh",
+	'Ճ': "Tch", 'ճ': "tch",
+	'Մ': "M", 'մ': "m",
+	'Յ': "Y", 'յ': "y",
+	'Ն': "N", 'ն': "n",
+	'Շ': "Sh", 'շ': "sh",
+	'Ո': "Vo", 'ո': "vo",
+	'Չ': "Ch'", 'չ': "ch'",
+	'Պ': "P", 'պ': "p",
+	'Ջ': "J", 'ջ': "j",
+	'Ռ': "R", 'ռ': "r",
+	'Ս': "S", 'ս': "s",
+	'Վ': "V", 'վ': "v",
+	'Տ': "T", 'տ': "t",
+	'Ր': "R", 'ր': "r",
+	'Ց': "Ts'", 'ց': "ts'",
+	'Ւ': "V", 'ւ': "v",
+	'Փ': "P'", 'փ': "p'",
+	'Ք': "Q", 'ք': "q",
+	'Օ': "O", 'օ': "o",
+	'Ֆ': "F", 'ֆ': "f",
+	// ՙ, ՚, ՛, ՜, ՝, ՞, and ՟ are punctuation marks and do not have Latin equivalents
+}
+
+// Basic mapping from Lao characters to the Latin alphabet.
+var laoToLatinMap = map[string]string{
+	// Consonants
+	"ກ": "k", "ຂ": "kh", "ຄ": "kh", "ງ": "ng",
+	"ຈ": "ch", "ສ": "s", "ຊ": "x", "ຍ": "ny",
+	"ດ": "d", "ຕ": "t", "ຖ": "th", "ທ": "th", "ນ": "n",
+	"ບ": "b", "ປ": "p", "ຜ": "ph", "ຝ": "f", "ພ": "ph", "ຟ": "f", "ມ": "m",
+	"ຢ": "y", "ຣ": "r", "ລ": "l", "ວ": "w", "ຫ": "h",
+	"ອ": "o", "ຮ": "h",
+
+	// Vowels
+	"ະ": "a", "ັ": "a", "າ": "ā", "ຳ": "am", "ິ": "i", "ີ": "ī",
+	"ຶ": "u", "ື": "ū", "ຸ": "u", "ູ": "ū", "ົ": "o", "ຼ": "l",
+	"ເ": "e", "ແ": "ē", "ໂ": "o", "ໃ": "ai", "ໄ": "ai",
+
+	// Tone marks
+	"່": "", "້": "", "໊": "", "໋": "",
+
+	// Other symbols
+	"໌": "", "ໍ": "",
+
+	// Numbers
+	"໐": "0", "໑": "1", "໒": "2", "໓": "3", "໔": "4",
+	"໕": "5", "໖": "6", "໗": "7", "໘": "8", "໙": "9",
+}
+
+var ahmaricReplacements = map[string]string{
+	"ሀ": "hä", "ለ": "lä", "ሐ": "hä", "መ": "mä", "ሠ": "sä", "ረ": "rä", "ሰ": "sä", "ሸ": "šä",
+	"ቀ": "qä", "በ": "bä", "ተ": "tä", "ቸ": "čä", "ኀ": "hä", "ነ": "nä", "ኘ": "ñä", "አ": "ʾä",
+	"ከ": "kä", "ኸ": "hä", "ወ": "wä", "ዐ": "ʾä", "ዘ": "zä", "ዠ": "žä", "የ": "yä", "ደ": "dä",
+	"ጀ": "ǧä", "ገ": "gä", "ጠ": "t'ä", "ጨ": "č'ä", "ጰ": "p'ä", "ጸ": "s'ä", "ፀ": "s'ä",
+	"ፈ": "fä", "ፐ": "pä", "ሁ": "hu", "ሉ": "lu", "ሑ": "hu", "ሙ": "mu", "ሡ": "su", "ሩ": "ru",
+	"ሱ": "su", "ሹ": "šu", "ቁ": "qu", "ቡ": "bu", "ቱ": "tu", "ቹ": "ču", "ኁ": "hu", "ኑ": "nu",
+	"ኙ": "ñu", "ኡ": "ʾu", "ኩ": "ku", "ኹ": "hu", "ዉ": "wu", "ዑ": "ʾu", "ዙ": "zu", "ዡ": "žu",
+	"ዩ": "yu", "ዱ": "du", "ጁ": "ǧu", "ጉ": "gu", "ጡ": "t'u", "ጩ": "č'u", "ጱ": "p'u", "ጹ": "s'u",
+	"ፁ": "s'u", "ፉ": "fu", "ፑ": "pu", "ሂ": "hi", "ሊ": "li", "ሒ": "hi", "ሚ": "mi", "ሢ": "si",
+	"ሪ": "ri", "ሲ": "si", "ሺ": "ši", "ቂ": "qi", "ቢ": "bi", "ቲ": "ti", "ቺ": "či", "ኂ": "hi",
+	"ኒ": "ni", "ኚ": "ñi", "ኢ": "ʾi", "ኪ": "ki", "ኺ": "hi", "ዊ": "wi", "ዒ": "ʾi", "ዚ": "zi",
+	"ዢ": "ži", "ዪ": "yi", "ዲ": "di", "ጂ": "ǧi", "ጊ": "gi", "ጢ": "t'i", "ጪ": "č'i", "ጲ": "p'i",
+	"ጺ": "s'i", "ፂ": "s'i", "ፊ": "fi", "ፒ": "pi", "ሃ": "ha", "ላ": "la", "ሓ": "ha", "ማ": "ma",
+	"ሣ": "sa", "ራ": "ra", "ሳ": "sa", "ሻ": "ša", "ቃ": "qa", "ባ": "ba", "ታ": "ta", "ቻ": "ča",
+	"ኃ": "ha", "ና": "na", "ኛ": "ña", "ኣ": "ʾa", "ካ": "ka", "ኻ": "ha", "ዋ": "wa", "ዓ": "ʾa",
+	"ዛ": "za", "ዣ": "ža", "ያ": "ya", "ዳ": "da", "ጃ": "ǧa", "ጋ": "ga", "ጣ": "t'a", "ጫ": "č'a",
+	"ጳ": "p'a", "ጻ": "s'a", "ፃ": "s'a", "ፋ": "fa", "ፓ": "pa", "ሄ": "he", "ሌ": "le", "ሔ": "he",
+	"ሜ": "me", "ሤ": "se", "ሬ": "re", "ሴ": "se", "ሼ": "še", "ቄ": "qe", "ቤ": "be", "ቴ": "te",
+	"ቼ": "če", "ኄ": "he", "ኔ": "ne", "ኜ": "ñe", "ኤ": "ʾe", "ኬ": "ke", "ኼ": "he", "ዌ": "we",
+	"ዔ": "ʾe", "ዜ": "ze", "ዤ": "že", "ዬ": "ye", "ዴ": "de", "ጄ": "ǧe", "ጌ": "ge", "ጤ": "t'e",
+	"ጬ": "č'e", "ጴ": "p'e", "ጼ": "s'e", "ፄ": "s'e", "ፌ": "fe", "ፔ": "pe", "ህ": "hə", "ል": "lə",
+	"ሕ": "hə", "ም": "mə", "ሥ": "sə", "ር": "rə", "ስ": "sə", "ሽ": "šə", "ቅ": "qə", "ብ": "bə",
+	"ት": "tə", "ች": "čə", "ኅ": "hə", "ን": "nə", "ኝ": "ñə", "እ": "ʾə", "ክ": "kə", "ኽ": "hə",
+	"ው": "wə", "ዕ": "ʾə", "ዝ": "zə", "ዥ": "žə", "ይ": "yə", "ድ": "də", "ጅ": "ǧə", "ግ": "gə",
+	"ጥ": "t'ə", "ጭ": "č'ə", "ጵ": "p'ə", "ጽ": "s'ə", "ፅ": "s'ə", "ፍ": "fə", "ፕ": "pə", "ሆ": "ho",
+	"ሎ": "lo", "ሖ": "ho", "ሞ": "mo", "ሦ": "so", "ሮ": "ro", "ሶ": "so", "ሾ": "šo", "ቆ": "qo",
+	"ቦ": "bo", "ቶ": "to", "ቾ": "čo", "ኆ": "ho", "ኖ": "no", "ኞ": "ño", "ኦ": "ʾo", "ኮ": "ko",
+	"ኾ": "ho", "ዎ": "wo", "ዖ": "ʾo", "ዞ": "zo", "ዦ": "žo", "ዮ": "yo", "ዶ": "do", "ጆ": "ǧo",
+	"ጎ": "go", "ጦ": "t'o", "ጮ": "č'o", "ጶ": "p'o", "ጾ": "s'o", "ፆ": "s'o", "ፎ": "fo", "ፖ": "po",
+	"ጐ": "gu", "ጓ": "gä", "ሏ": "wa", "ሟ": "ma", "ቷ": "ta",
+	"፤": ":", "፡": " ",
+	"።": ".", "፩": "1", "፪": "2", "፫": "3", "፬": "4", "፭": "5", "፮": "6", "፯": "7", "፰": "8",
+	"፱": "9", "፲": "10",
+}
+
+// Basic mapping from Khmer characters to Latin alphabet. This is very simplified and needs to be expanded.
+var khmerToLatinMap = map[string]string{
+	// Consonants
+	"ក": "k", "ខ": "kh", "គ": "k", "ឃ": "kh", "ង": "ng",
+	"ច": "ch", "ឆ": "chh", "ជ": "ch", "ឈ": "chh", "ញ": "nh",
+	"ដ": "d", "ឋ": "th", "ឌ": "d", "ឍ": "th", "ណ": "n",
+	"ត": "t", "ថ": "th", "ទ": "t", "ធ": "th", "ន": "n",
+	"ប": "b", "ផ": "ph", "ព": "p", "ភ": "ph", "ម": "m",
+	"យ": "y", "រ": "r", "ល": "l", "វ": "v", "ឝ": "s",
+	"ឞ": "sa", "ស": "s", "ហ": "h", "ឡ": "l", "អ": "'",
+
+	// Independent vowels
+	"ឣ": "a", "ឤ": "aa", "ឥ": "i", "ឦ": "ii", "ឧ": "u",
+	"ឨ": "uk", "ឩ": "uu", "ឪ": "uuv", "ឫ": "ry", "ឬ": "ryy",
+	"ឭ": "ly", "ឮ": "lyy", "ឯ": "e", "ឰ": "ai", "ឱ": "oo",
+	"ឲ": "au", "ឳ": "au",
+
+	// Dependent vowels
+	"ា": "a", "ិ": "i", "ី": "ii", "ឹ": "u", "ឺ": "uu",
+	"ុ": "u", "ូ": "uu", "ួ": "uo", "ើ": "ae", "ឿ": "ie",
+	"ៀ": "e", "េ": "ae", "ែ": "ai", "ៃ": "ai", "ោ": "ao",
+	"ៅ": "au", "ំ": "am", "ះ": "ah",
+
+	// Subscripts
+	"្": "", // This is a subscript marker; actual subscript consonants would need additional rules
+
+	// Diacritics and other marks
+	"ៈ": "", // Symbol to indicate duplicate consonant
+	"៉": "", // Indicates change in consonant sound
+	"៊": "", // Another mark for consonant sound change
+	"់": "", // Tone mark
+	"៌": "", // Tone mark
+	"៍": "", // Cancel previous diacritic
+	"៎": "", // Rare mark, usage varies
+	"៏": "", // Rare mark, usage varies
+	"័": "", // Series marker
+	"៑": "", // Obscure diacritic
+
+	// Numbers
+	"០": "0", "១": "1", "២": "2", "៣": "3", "៤": "4",
+	"៥": "5", "៦": "6", "៧": "7", "៨": "8", "៩": "9",
+}
+
+// Basic mapping from Thai characters to Latin alphabet. This is very simplified and needs to be expanded.
+var thaiToLatinMap = map[string]string{
+	// Consonants
+	"ก": "k", "ข": "kh", "ฃ": "kh", "ค": "kh", "ฅ": "kh", "ฆ": "kh",
+	"ง": "ng", "จ": "j", "ฉ": "ch", "ช": "ch", "ซ": "s", "ฌ": "ch",
+	"ญ": "y", "ฎ": "d", "ฏ": "t", "ฐ": "th", "ฑ": "th", "ฒ": "th",
+	"ณ": "n", "ด": "d", "ต": "t", "ถ": "th", "ท": "th", "ธ": "th",
+	"น": "n", "บ": "b", "ป": "p", "ผ": "ph", "ฝ": "f", "พ": "ph",
+	"ฟ": "f", "ภ": "ph", "ม": "m", "ย": "y", "ร": "r", "ล": "l",
+	"ว": "w", "ศ": "s", "ษ": "s", "ส": "s", "ห": "h", "ฬ": "l",
+	"อ": "o", "ฮ": "h",
+
+	// Vowels and vowel combinations
+	"ะ": "a", "ั": "a", "า": "a", "ำ": "am", "ิ": "i", "ี": "i",
+	"ึ": "ue", "ื": "ue", "ุ": "u", "ู": "u", "เ": "e", "แ": "ae",
+	"โ": "o", "ใ": "ai", "ไ": "ai",
+
+	// Tone marks
+	"่": "", "้": "", "๊": "", "๋": "",
+
+	// Other symbols
+	"ฯ": ".", "ๆ": "(repetition)", "์": "", "ํ": "", "๏": "section",
+	"๐": "0", "๑": "1", "๒": "2", "๓": "3", "๔": "4",
+	"๕": "5", "๖": "6", "๗": "7", "๘": "8", "๙": "9",
+}
+
 // The following functions are responsible for latinizations of various scripts; it is specified in the name.
 
 func LatinizeCyrillic(text string) string {
@@ -278,6 +497,68 @@ func LatinizePersian(input string) string {
 	return input
 }
 
+func LatinizeBurmese(burmeseText string) string {
+	var latinText strings.Builder
+
+	for _, char := range burmeseText {
+		latinChar, ok := burmeseToLatinMap[string(char)]
+		if ok {
+			latinText.WriteString(latinChar)
+		} else {
+			latinText.WriteRune(char) // Keep the character as is if no mapping is found
+		}
+	}
+
+	return latinText.String()
+}
+
+// LatinizeLao converts Lao text to a simplified Latin representation.
+func LatinizeLao(laoText string) string {
+	var latinText strings.Builder
+
+	for _, char := range laoText {
+		latinChar, ok := laoToLatinMap[string(char)]
+		if ok {
+			latinText.WriteString(latinChar)
+		} else {
+			latinText.WriteRune(char) // Keep the character as is if no mapping is found
+		}
+	}
+
+	return latinText.String()
+}
+
+// LatinizeKhmer converts Khmer text to a simplified Latin representation.
+func LatinizeKhmer(khmerText string) string {
+	var latinText strings.Builder
+
+	for _, char := range khmerText {
+		latinChar, ok := khmerToLatinMap[string(char)]
+		if ok {
+			latinText.WriteString(latinChar)
+		} else {
+			latinText.WriteRune(char) // Keep the character as is if no mapping is found
+		}
+	}
+
+	return latinText.String()
+}
+
+func LatinizeThai(thaiText string) string {
+	var latinText strings.Builder
+
+	for _, char := range thaiText {
+		latinChar, ok := thaiToLatinMap[string(char)]
+		if ok {
+			latinText.WriteString(latinChar)
+		} else {
+			latinText.WriteRune(char) // Keep the character as is if no mapping is found
+		}
+	}
+
+	return latinText.String()
+}
+
 // Function to latinize hebrew text.
 
 func LatinizeHebrew(input string) string {
@@ -326,6 +607,38 @@ func LatinizeHebrew(input string) string {
 	sym = strings.ReplaceAll(sym, "־", "")
 	sym = strings.ReplaceAll(sym, "\n", "\n")
 	return sym
+}
+
+func LatinizeGeorgian(input string) string {
+	var result strings.Builder
+	for _, char := range input {
+		if latinChar, ok := georgianToLatin[char]; ok {
+			result.WriteString(latinChar)
+		} else {
+			result.WriteRune(char)
+		}
+	}
+	return result.String()
+}
+
+func LatinizeArmenian(input string) string {
+	var result strings.Builder
+	for _, char := range input {
+		if latinChar, ok := armenianToLatin[char]; ok {
+			result.WriteString(latinChar)
+		} else {
+			// If the character does not have a mapping, just add it as is.
+			result.WriteRune(char)
+		}
+	}
+	return result.String()
+}
+
+func LatinizeAhmaric(input string) string {
+	for old, new := range ahmaricReplacements {
+		input = strings.Replace(input, old, new, -1)
+	}
+	return input
 }
 
 func findSecondTdValue(n *html.Node) string {
@@ -420,6 +733,20 @@ func LatinizeText(text string, data map[string][]string, language string) string
 		return LatinizePersian(text)
 	case "hebrew":
 		return LatinizeHebrew(text)
+	case "burmese":
+		return LatinizeBurmese(text)
+	case "lao":
+		return LatinizeLao(text)
+	case "khmer":
+		return LatinizeKhmer(text)
+	case "thai":
+		return LatinizeThai(text)
+	case "armenian":
+		return LatinizeArmenian(text)
+	case "georgian":
+		return LatinizeGeorgian(text)
+	case "tigre", "tigrinya", "ahmaric":
+		return LatinizeAhmaric(text)
 	default:
 		// else just returns the text; I still need to cover a lot of non-latin scripts.
 		return text
