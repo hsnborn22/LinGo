@@ -269,6 +269,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "f":
 				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
 				fileReader.MakeDictionary(dictionary, m.currentLanguage, m.bootLanguage)
+			case "z":
+				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
+				fileReader.MakeAltDictionary(dictionary, m.currentLanguage, m.bootLanguage, m.hanziData)
 			}
 		}
 
@@ -373,6 +376,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "f":
 				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage)
+			case "z":
+				fileReader.MakeAltDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage, m.hanziData)
 
 			// Move the cursor to the beginning of the current page.
 			case "m":
