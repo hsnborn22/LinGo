@@ -91,6 +91,13 @@ I already state that building from source will be considerably harder, so I reco
 Just go to the [tags tab](https://github.com/hsnborn22/LinGo/tags), and then select the latest version. From here, download the archive file for your operating system (there are binaries for windows, linux and macOS).
 Once you have downloaded the zip, unzip it whenever you want, enter in the folder and execute the executable file: you are ready to go! The app should be already working. 
 
+
+**Note**: If you're using pipewire instead of alsa on your system, the app might not work; if that is the case, i.e if the errors you're encountering are related to alsa and audio mixing problems, then just run the following command:
+
+```bash
+sudo apt install libasound2-dev
+```
+
 ### Building from source
 To build LinGo from source, you will first need a go compiler on your machine. The go version that was used to code LinGo is the (currently) latest version go 1.21.4 . It is preferred that you use go 1.21.4, even though it probably works even with older versions (haven't checked yet). With this said, if you don't have go installed on your machine, you can follow the installation guide on [their official website](https://go.dev/doc/install) (they have a guide for linux,macOS and windows). Once you have installed go on your machine, download the source code from the repository by clicking on the green "code" button on the top, and then "download zip" 
 
