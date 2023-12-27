@@ -55,6 +55,27 @@ The app now supports tts and instant translation while studying a text [for over
 The app also supports conlangs (like toki pona, lojban or even possibly your own) but the tts and instant translation tools might not work, so you'll just have to use it for tokenization and word memorization.  
 
 
+The app also supports latinization for the following non latin scripts:
+
+* Japanese kana and kanji
+* Chinese hanzi
+* Korean hangul
+* Ge'ez script (used by tigre, tigrinya, amharic exc.)
+* Hindi
+* Arabic
+* Hebrew
+* Greek
+* Persian
+* Burmese
+* Lao
+* Khmer
+* Thai
+* Armenian
+* Georgian
+* Cyrillic (russian, serbian, mongolian, kazakh, bulgarian, ukrainian and many more)
+
+I plan on adding latinization support for other non latin scripts too, such as old mongolian script and tibetan.
+
 
 ## Installation:
 In this section we will see how to install the program and how to run it on your computer. You can install LinGo in 2 ways:
