@@ -171,7 +171,7 @@ Ok but now you might ask: what is the cursor used for? While hovering a word wit
 * 0 --> list the word as ignored (all new words are by default set as ignored, since it's up to you to decide how well you know it and if you know it or not. The color of the word will be white)
 * 4 --> Listen to the pronunciation of the word with text-to-speech
 * 5 --> Give an instant translation of the word in your language (if you're reading this documentation in english then you probably wish to use the app in english too).
-* 6 --> Latinize the current word; the app currently supports latinization for: chinese, japanese, korean, arabic, greek, hindi, persian and all languages that use cyrillic.
+* 6 --> Latinize the current word; the app currently supports latinization for: chinese, japanese, korean, arabic, greek, hindi, persian, ge'ez, armenian, georgian, lao, burmese, thai, khmer and all languages that use cyrillic.
 * 7 --> Get stroke order of the character (only works for chinese and japanese)
 
 
