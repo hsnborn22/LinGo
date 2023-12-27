@@ -55,7 +55,7 @@ The app now supports tts and instant translation while studying a text [for over
 The app also supports conlangs (like toki pona, lojban or even possibly your own) but the tts and instant translation tools might not work, so you'll just have to use it for tokenization and word memorization.  
 
 
-The app also supports latinization for the following non latin scripts:
+The app also supports latinization for the following non latin scripts (this means that you can get a phonetical approximation of each word expressed in latin script while reading the text by pressing the key "7"):
 
 * Japanese kana and kanji
 * Chinese hanzi
