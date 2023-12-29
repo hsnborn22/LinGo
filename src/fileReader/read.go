@@ -433,7 +433,7 @@ func MakeDictionary(data map[string]int, language string, bootLanguage string) {
 		if v == 1 || v == 2 {
 			// get the translation via the API
 			languageId := languageHandler.LanguageMap2[language]
-			translation, _ := translator.Translate(k, languageId, bootLanguage)
+			translation, _ := translator.Translate2(k, languageId, bootLanguage)
 			// append to the finalString
 			finalString += fmt.Sprintf("%s, %s\n", k, translation)
 		}
@@ -488,7 +488,7 @@ func MakeAltDictionary(data map[string]int, language string, bootLanguage string
 		if v == 1 || v == 2 {
 			// get the translation via the API
 			languageId := languageHandler.LanguageMap2[language]
-			translation, _ := translator.Translate(k, languageId, bootLanguage)
+			translation, _ := translator.Translate2(k, languageId, bootLanguage)
 			latinization := translator.LatinizeText(k, hanziData, language)
 			// append to the finalString
 			finalString += fmt.Sprintf("%s, %s (%s)\n", k, translation, latinization)

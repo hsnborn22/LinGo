@@ -28,6 +28,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	translator "github.com/Conight/go-googletrans"
 )
 
 /*
@@ -124,4 +126,13 @@ func Translate(text string, languageId string, bootLanguage string) (string, str
 	} else {
 		return res.ResponseData.TranslatedText, ""
 	}
+}
+
+func Translate2(text string, languageId string, bootLanguage string) (string, string) {
+	t := translator.New()
+	result, err := t.Translate(text, languageId, bootLanguage)
+	if err != nil {
+		return "", err.Error()
+	}
+	return result.Text, ""
 }
