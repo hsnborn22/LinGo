@@ -373,6 +373,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if err != nil {
 					m.currentError += err.Error()
 				}
+			case "8":
+				url := fmt.Sprintf("https://translate.google.com/?sl=%s&tl=%s&text=%s&op=translate", languageHandler.LanguageMap2[m.currentLanguage], m.bootLanguage, m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				err := strokeOrder.OpenBrowser(url)
+				if err != nil {
+					m.currentError += err.Error()
+				}
+			case "9":
+				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
+				translation, errString := translator.Translate2(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
+				m.currentError = errString
+				m.openedFileText.CurrentTranslate = translation
 
 			case "f":
 				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage)
