@@ -179,6 +179,8 @@ Ok but now you might ask: what is the cursor used for? While hovering a word wit
 * 5 --> Give an instant translation of the word in your language (if you're reading this documentation in english then you probably wish to use the app in english too).
 * 6 --> Latinize the current word; the app currently supports latinization for: chinese, japanese, korean, arabic, greek, hindi, persian, ge'ez, armenian, georgian, lao, burmese, thai, khmer and all languages that use cyrillic.
 * 7 --> Get stroke order of the character (only works for chinese and japanese)
+* 8 --> Opens google translate in your browser with a translation of the current selected word.
+* 9 --> Get alternative translation; use it if the first translation obtained with 5 doesn't convince you.
 
 
 This data about words is then stored locally in json files inside the languages folder (specifically, the file is languages/"language name"/words.json).
