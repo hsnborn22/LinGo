@@ -361,7 +361,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// get translation
 			case "5":
 				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
+				translation, errString := translator.Translate2(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
 				m.currentError = errString
 				m.openedFileText.CurrentTranslate = translation
 
@@ -381,7 +381,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case "9":
 				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				translation, errString := translator.Translate2(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
+				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
 				m.currentError = errString
 				m.openedFileText.CurrentTranslate = translation
 
