@@ -15,6 +15,7 @@ package main
 */
 
 import (
+  _ "embed"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,6 +33,9 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 )
+
+//go:embed src/translator/hanzi.json
+var hanzi []byte
 
 // Styles for the app
 // The styles were done using lipgloss; the titles are pretty self-explanatory but I will explain what each of these
@@ -206,7 +210,7 @@ func initialModel() model {
 		bootLanguage:  bootLangString,
 		languageTable: t,
 		textTable:     t2,
-		hanziData:     translator.InitHanzi(),
+		hanziData:     translator.InitHanzi(hanzi),
 	}
 }
 
