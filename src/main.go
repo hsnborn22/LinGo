@@ -516,7 +516,7 @@ func main() {
 	}
 	// Create a new bubbleTea program using the model returned by the initalModel() function
 	// We saw what that function does at the beginning of the program.
-	p := tea.NewProgram(initialModel())
+	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	// If there's an error in the running of the application, let the user know
 	// by printing it out to the console.
 	if _, err := p.Run(); err != nil {
