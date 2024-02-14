@@ -1,5 +1,3 @@
-## Python
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -41,3 +39,8 @@ venv.bak/
 
 # Cython debug symbols
 cython_debug/
+
+# Binaries
+LinGo
+
+# Runtime files
