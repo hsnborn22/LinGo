@@ -32,7 +32,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -118,7 +117,7 @@ func GetAudio(text string, languageId string) string {
 	}
 
 	// Read the response body
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return fmt.Sprintf("Error reading response body: %s", err.Error())
 	}

@@ -10,26 +10,23 @@ package main
 2) io/ioutil and os --> working with files
 3) path/filepath --> used to list the number of subdirectories and files inside directories.
 4) strings --> used for some string methods used throughout the program
-5) all the packages with example.com in front are the packages that can be found in the respective folders:
-the files inside will explain what each package does.
 
 6) Bubbletea and lipgloss --> used for the interface.
 */
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"example.com/packages/audioPlayer"
-	"example.com/packages/fileReader"
-	"example.com/packages/interfaceLanguage"
-	"example.com/packages/languageHandler"
-	"example.com/packages/strokeOrder"
-	"example.com/packages/terminalSize"
-	"example.com/packages/translator"
+	"github.com/hsnborn22/LinGo/src/audioPlayer"
+	"github.com/hsnborn22/LinGo/src/fileReader"
+	"github.com/hsnborn22/LinGo/src/interfaceLanguage"
+	"github.com/hsnborn22/LinGo/src/languageHandler"
+	"github.com/hsnborn22/LinGo/src/strokeOrder"
+	"github.com/hsnborn22/LinGo/src/terminalSize"
+	"github.com/hsnborn22/LinGo/src/translator"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -130,7 +127,7 @@ type model struct {
 
 func initialModel() model {
 	// Get the boot language from the bootLanguage.txt file by reading it.
-	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
+	bootLang, _ := os.ReadFile("setup/bootLanguage.txt")
 	// Convert the []byte object we got into a string
 	bootLangString := string(bootLang)
 	// These 4 lines of code just make sure to remove all the possible spaces, new lines and tabular spaces.

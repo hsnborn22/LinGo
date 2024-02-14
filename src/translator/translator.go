@@ -25,7 +25,7 @@ ukrainian, mongolian,kazakh, standard arabic, korean, chinese, greek exc.) into 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -104,7 +104,7 @@ func Translate(text string, languageId string, bootLanguage string) (string, str
 	}
 
 	// Read the response body
-	body, err2 := ioutil.ReadAll(response.Body)
+	body, err2 := io.ReadAll(response.Body)
 	if err2 != nil {
 		return "", fmt.Sprintf("Error reading response body: %s", err2.Error())
 	}
