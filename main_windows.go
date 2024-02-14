@@ -1,8 +1,8 @@
 package main
 
 import (
+  _ "embed"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -16,6 +16,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/nsf/termbox-go"
 )
+
+//go:embed src/translator/hanzi.json
+var hanzi []byte
 
 // Styles for the app
 
@@ -92,7 +95,7 @@ type model struct {
 // inits a model struct for the app
 
 func initialModel() model {
-	bootLang, _ := ioutil.ReadFile("setup/bootLanguage.txt")
+	bootLang, _ := os.ReadFile("setup/bootLanguage.txt")
 	bootLangString := string(bootLang)
 	directoryPath := "languages"
 
