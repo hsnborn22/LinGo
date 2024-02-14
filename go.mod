@@ -1,4 +1,4 @@
-module github.com/hsnborn22/LinGo/src
+module github.com/hsnborn22/LinGo
 
 go 1.21.4
 
@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.24.2
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/faiface/beep v1.1.0
+	github.com/nsf/termbox-go v1.1.1
 	golang.org/x/net v0.19.0
 	golang.org/x/term v0.15.0
 )
