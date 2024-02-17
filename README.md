@@ -48,7 +48,7 @@ Summing everything up, the goal of the app is to provide a lightweight, fast to 
 
 ## Languages supported:
 
-The app now supports tts and instant translation while studying a text [for over 150 languages](https://lingotext.github.io/language-support.html), as well as text tokenization; it supports text tokenization also for languages which are not separated by spaces, such as thai, japanese, chinese, lao, burmese and khmer via nlps. The tokenization for these languages, however, is implemented in python, so in order to make it work you will have to run a python script (which can be server_thai.py, server_japanese.py,server_burmese.py, server_lao.py, server_chinese.py or server_khmer.py) before loading your text.
+The app now supports tts and instant translation while studying a text [for over 150 languages](https://lingotext.github.io/language-support.html), as well as text tokenization; it supports text tokenization also for languages which are not separated by spaces, such as thai, japanese, chinese, lao, burmese and khmer via nlps. The tokenization for these languages, however, is implemented in python, so in order to make it work you will have to run a python script (which can be server_thai.py, server_japanese.py, server_burmese.py, server_lao.py, server_chinese.py or server_khmer.py) before loading your text.
 
 
 The app also supports conlangs (like toki pona, lojban or even possibly your own) but the tts and instant translation tools might not work, so you'll just have to use it for tokenization and word memorization.  
@@ -83,7 +83,7 @@ In this section we will see how to install the program and how to run it on your
 
 2) Building from source
 
-I already state that building from source will be considerably harder, so I recommend doing so if and only if you plan on modifying and contributing to the software. 
+I already stated that building from source will be considerably harder, so I recommend doing so if and only if you plan on modifying and contributing to the software. 
 
 ### Downloading the binaries
 
@@ -98,7 +98,7 @@ sudo apt install libasound2-dev
 ```
 
 ### Building from source
-To build LinGo from source, you will first need a go compiler on your machine. The go version that was used to code LinGo is the (currently) latest version go 1.21.4 . It is preferred that you use go 1.21.4, even though it probably works even with older versions (haven't checked yet). With this said, if you don't have go installed on your machine, you can follow the installation guide on [their official website](https://go.dev/doc/install) (they have a guide for linux,macOS and windows). Once you have installed go on your machine, download the source code from the repository by clicking on the green "code" button on the top, and then "download zip" 
+To build LinGo from source, you will first need a go compiler on your machine. The go version that was used to code LinGo is the (at the moment of writing) latest version go 1.21.4 . It is preferred that you use go 1.21.4, even though it probably works with older versions (haven't checked yet). With this said, if you don't have go installed on your machine, you can follow the installation guide on [their official website](https://go.dev/doc/install) (they have a guide for linux, macOS and windows). Once you have installed go on your machine, download the source code from the repository by clicking on the green "code" button on the top, and then "download zip"
 
 ![Image 1](.github/images/lingo1.png)
 
@@ -111,12 +111,12 @@ To build LinGo from source, you will first need a go compiler on your machine. T
 git clone https://github.com/hsnborn22/LinGo.git
 ```
 
-Once you have the repo installed on your machine, head over to the "src" folder (this is the folder that contains the source code) and run the following command:
+Once you have this repository on your machine, run the following command in the root of the repository:
 
 ```bash
 go get
 ```
-This will install all the dependencies necessary for the application to work. Once you have done this, you are ready to (Lin)go. To start the application run the following command (while staying in the src folder).
+This will download all the dependencies necessary for compiling the application. Once you have done this, you are ready to (Lin)go. To start the application run the following command.
 
 ```bash
 go run main.go
