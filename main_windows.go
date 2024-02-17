@@ -21,7 +21,6 @@ import (
 var hanzi []byte
 
 // Styles for the app
-
 var (
 	// This is the style for the titles in the menus
 	titleStyle = lipgloss.NewStyle().MarginLeft(2)
@@ -29,17 +28,17 @@ var (
 	itemStyle = lipgloss.NewStyle().PaddingLeft(4)
 	// Style for the current selected item in the menu
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	// Style for the text to quit
+	// This is the style for the "quit text", i.e the text that tells us how to quit the program.
 	quitTextStyle = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 	// Styles for the different levels of word knowledge
-	notKnownItemStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000")) // not known --> red
-	semiKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFCA3A")) // semiknown --> yellow
-	knownItemStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#00b300")) // known --> green
+	notKnownItemStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000")) // 1) not known --> red
+	semiKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFCA3A")) // 2) semiknown --> yellow
+	knownItemStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#00b300")) // 3) known --> green
 )
-
-// visitFile function:
-// prints out the files inside a directory
-
+/*
+visitFile function:
+this function appends the list of files inside a given directory inside the filePaths slice.
+*/
 func visitFile(fp string, fi os.DirEntry, err error) error {
 	if err != nil {
 		fmt.Println(err) // can't walk here,
@@ -53,17 +52,22 @@ func visitFile(fp string, fi os.DirEntry, err error) error {
 	return nil
 }
 
-// listDirectories function:
-// prints out the directories inside a directory
-
+/*
+listDirectories function:
+this function lists the subdirectories inside a certain path. it returns the list in the
+form of a slice and a possible error (which is nil if everything went as expected)
+*/
 func listDirectories(directoryPath string) ([]string, error) {
+	// declare the slice variable we're going to return
 	var directories []string
 
+	// here we're using the filepath package we imported at the beginning
 	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() {
+			// if the files we're encountering while "walking" are a directories, append them to the directories slice.
 			directories = append(directories, path)
 		}
 		return nil
@@ -73,6 +77,7 @@ func listDirectories(directoryPath string) ([]string, error) {
 		return nil, err
 	}
 
+	// return the slice and the error (which if we reached this point will be nil since no error occured)
 	return directories, nil
 }
 
@@ -154,6 +159,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.openedFile = m.choices[m.cursor]
 				text := fileReader.InitText(m.openedFile, m.currentLanguage)
 				m.openedFileText = text
+			// If the key pressed is f, generate a dictionary file.
 			case "f":
 				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
 				fileReader.MakeDictionary(dictionary, m.currentLanguage, m.bootLanguage)
@@ -197,12 +203,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.openedFileText.TokenCursorPosition < m.openedFileText.TokenLength-1 && m.openedFileText.TokenCursorPosition+line < m.openedFileText.TokenLength-1 {
 					m.openedFileText.TokenCursorPosition += line
 				}
+
+			// We use a and d to move between pages
+			// If the key pressed is d, move one page to the right
 			case "d":
+        /*
+				Check that we're not on the last page first; if we were on the last page
+				we would ideally not want to be able to go one page further since there's no
+				next page by definition
+				fmt.Println(m.openedFileText.CurrentPage, m.openedFileText.Pages)
+        */
 				if m.openedFileText.CurrentPage < m.openedFileText.Pages-1 {
+					// If everything is alright implement the logic, i.e augment the page counter and go to the next page
 					m.openedFileText.CurrentPage++
 				}
+			// If the key pressed is a, move one page to the left
 			case "a":
+				// Check if we're not on page 0 first: if we were, we would go to page -1 and that doesn't make sense.
 				if m.openedFileText.CurrentPage > 0 {
+					// If everything is alright implement the logic, i.e decrement the page counter and go to the next page
 					m.openedFileText.CurrentPage--
 				}
 
@@ -394,11 +413,19 @@ func main() {
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
+
+	// Run the WalkDir function we looked at the beginning of the file inside of the texts directory
+	// store the possible error we could get inside of the err variable
 	err := filepath.WalkDir("./texts", visitFile)
+	// If there is no error, it's all right; print it out to the console.
 	if err != nil {
 		fmt.Print("All right")
 	}
-	p := tea.NewProgram(initialModel())
+	// Create a new bubbleTea program using the model returned by the initalModel() function
+	// We saw what that function does at the beginning of the program.
+	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	// If there's an error in the running of the application, let the user know
+	// by printing it out to the console.
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)

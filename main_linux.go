@@ -1,19 +1,5 @@
 package main
 
-// This is the main file: when you will run the compiled executable the code inside the main function
-// is what will run.
-
-// Imports:
-
-/*
-1) fmt --> for printing, formatting exc.
-2) io/ioutil and os --> working with files
-3) path/filepath --> used to list the number of subdirectories and files inside directories.
-4) strings --> used for some string methods used throughout the program
-
-6) Bubbletea and lipgloss --> used for the interface.
-*/
-
 import (
   _ "embed"
 	"fmt"
@@ -38,33 +24,30 @@ import (
 var hanzi []byte
 
 // Styles for the app
-// The styles were done using lipgloss; the titles are pretty self-explanatory but I will explain what each of these
-// styles do.
-
 var (
+	// This is the style for the titles in the menus
 	titleStyle = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle  = lipgloss.NewStyle().PaddingLeft(4)
-	// Style for the current item we're hovering over in a text.
+	// Style for the items to select in the menus
+	itemStyle = lipgloss.NewStyle().PaddingLeft(4)
+	// Style for the current selected item in the menu
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	// This is the style for the "quit text", i.e the text that tells us how to quit the program.
 	quitTextStyle = lipgloss.NewStyle().Margin(1, 0, 2, 4)
-	// These are the styles for all the "word levels"
-	// 1) Not known --> word will become red
-	notKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
-	// 2) Semi-known --> word will become yellow
-	semiKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFCA3A"))
-	// 3) Known --> word will become green
-	knownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00b300"))
+	// Styles for the different levels of word knowledge
+	notKnownItemStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000")) // 1) not known --> red
+	semiKnownItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFCA3A")) // 2) semiknown --> yellow
+	knownItemStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#00b300")) // 3) known --> green
 )
 
-// These are the styles for the tables used in the menus
-
+// Styles for the tables used in the menus
 var baseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).
 	BorderForeground(lipgloss.Color("240"))
 
-// visitFile function:
-// this function appends the list of files inside a given directory inside the filePaths slice.
+/*
+visitFile function:
+this function appends the list of files inside a given directory inside the filePaths slice.
+*/
 func visitFile(fp string, fi os.DirEntry, err error) error {
 	if err != nil {
 		fmt.Println(err) // can't walk here,
@@ -78,10 +61,11 @@ func visitFile(fp string, fi os.DirEntry, err error) error {
 	return nil
 }
 
-// listDirectories function:
-// this function lists the subdirectories inside a certain path. it returns the list in the
-// form of a slice and a possible error (which is nil if everything went as expected)
-
+/*
+listDirectories function:
+this function lists the subdirectories inside a certain path. it returns the list in the
+form of a slice and a possible error (which is nil if everything went as expected)
+*/
 func listDirectories(directoryPath string) ([]string, error) {
 	// declare the slice variable we're going to return
 	var directories []string
@@ -103,22 +87,21 @@ func listDirectories(directoryPath string) ([]string, error) {
 	}
 
 	// return the slice and the error (which if we reached this point will be nil since no error occured)
-
 	return directories, nil
 }
 
 var filePaths []string // Declare a global slice to store file paths
 
 type model struct {
-	choices         []string        // text-file selection menu (OLD)
-	choices2        []string        // language select menu (OLD)
-	cursor          int             // which to-do list item our cursor is pointing at
-	viewIndex       int             // viewIndex --> will be 0 for the menu, and 1 for an opened file.
-	openedFile      string          // will store the name of the file we opened.
-	openedFileText  fileReader.Text // will store the fileReader.Text object representing the file we opened
-	cursor2         int             //
-	currentLanguage string          // This is the current language we're studying
-	currentError    string          // This is the current error that go cathced; in this way, if something goes wrong with the APIs the app
+	choices         []string          // text-file selection menu (OLD)
+	choices2        []string          // language select menu (OLD)
+	cursor          int               // which to-do list item our cursor is pointing at
+	viewIndex       int               // viewIndex --> will be 0 for the menu, and 1 for an opened file.
+	openedFile      string            // will store the name of the file we opened.
+	openedFileText  fileReader.Text   // will store the fileReader.Text object representing the file we opened
+	cursor2         int               //
+	currentLanguage string            // This is the current language we're studying
+	currentError    string            // This is the current error that go cathced; in this way, if something goes wrong with the APIs the app
 	// doesn't crash, it just notifies the user and tells you what went wrong.
 	bootLanguage  string              // This is the language of the interface (if you're reading this I assume you speak english and thus it will be english)
 	languageTable table.Model         // This is the table listing all the languages (new UI)
@@ -317,10 +300,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// We use a and d to move between pages
 			// If the key pressed is d, move one page to the right
 			case "d":
-				// Check that we're not on the last page first; if we were on the last page
-				// we would ideally not want to be able to go one page further since there's no
-				// next page by definition
-				//fmt.Println(m.openedFileText.CurrentPage, m.openedFileText.Pages)
+        /*
+				Check that we're not on the last page first; if we were on the last page
+				we would ideally not want to be able to go one page further since there's no
+				next page by definition
+				fmt.Println(m.openedFileText.CurrentPage, m.openedFileText.Pages)
+        */
 				if m.openedFileText.CurrentPage < m.openedFileText.Pages-1 {
 					// If everything is alright implement the logic, i.e augment the page counter and go to the next page
 					m.openedFileText.CurrentPage++
