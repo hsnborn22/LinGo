@@ -29,7 +29,7 @@ var (
 	titleStyle = lipgloss.NewStyle().MarginLeft(2)
 	// Style for the items to select in the menus
 	itemStyle = lipgloss.NewStyle().PaddingLeft(4)
-	// Style for the current selected item in the menu
+	// Style for the currently selected item in the menu
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	// This is the style for the "quit text", i.e the text that tells us how to quit the program.
 	quitTextStyle = lipgloss.NewStyle().Margin(1, 0, 2, 4)
