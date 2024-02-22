@@ -109,9 +109,10 @@ type model struct {
 	hanziData     map[string][]string // This is the map that stores the pinyin equivalent of the most common hanzi in simplified mandarin chinese
 }
 
-// This function initializes the bubbletea model to boot the application; this is one of the "dirtiest" parts of the application
-// in terms of code and it needs a serious refactor.
-
+/*
+This function initializes the bubbletea model to boot the application; this is one of the "dirtiest" parts of the application
+in terms of code and it needs a serious refactor.
+*/
 func initialModel() model {
 	// Get the boot language from the bootLanguage.txt file by reading it.
 	bootLang, _ := os.ReadFile("setup/bootLanguage.txt")
@@ -202,9 +203,10 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
-// Update method; this update method handles the changes that need to be done to the UI
-// when a key is pressed or when something is changed (in according with the ELM architecture principles).
-
+/*
+Update method; this update method handles the changes that need to be done to the UI
+when a key is pressed or when something is changed (in according with the ELM architecture principles).
+*/
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.openedFileText.PageList = fileReader.DivideInPages(m.openedFileText.TokenList)
 	m.openedFileText.Pages = len(m.openedFileText.PageList)
@@ -491,7 +493,6 @@ func (m model) View() string {
 }
 
 // This is the main function, the main entrypoint of the program.
-
 func main() {
 	// Run the WalkDir function we looked at the beginning of the file inside of the texts directory
 	// store the possible error we could get inside of the err variable
