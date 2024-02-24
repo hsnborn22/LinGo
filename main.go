@@ -1,11 +1,15 @@
 package main
 
 import (
-  _ "embed"
+	_ "embed"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/hsnborn22/LinGo/src/audioPlayer"
 	"github.com/hsnborn22/LinGo/src/fileReader"
@@ -14,10 +18,6 @@ import (
 	"github.com/hsnborn22/LinGo/src/strokeOrder"
 	"github.com/hsnborn22/LinGo/src/terminalSize"
 	"github.com/hsnborn22/LinGo/src/translator"
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 //go:embed src/translator/hanzi.json
@@ -93,15 +93,15 @@ func listDirectories(directoryPath string) ([]string, error) {
 var filePaths []string // Declare a global slice to store file paths
 
 type model struct {
-	choices         []string          // text-file selection menu (OLD)
-	choices2        []string          // language select menu (OLD)
-	cursor          int               // which to-do list item our cursor is pointing at
-	viewIndex       int               // viewIndex --> will be 0 for the menu, and 1 for an opened file.
-	openedFile      string            // will store the name of the file we opened.
-	openedFileText  fileReader.Text   // will store the fileReader.Text object representing the file we opened
-	cursor2         int               //
-	currentLanguage string            // This is the current language we're studying
-	currentError    string            // This is the current error that go cathced; in this way, if something goes wrong with the APIs the app
+	choices         []string        // text-file selection menu (OLD)
+	choices2        []string        // language select menu (OLD)
+	cursor          int             // which to-do list item our cursor is pointing at
+	viewIndex       int             // viewIndex --> will be 0 for the menu, and 1 for an opened file.
+	openedFile      string          // will store the name of the file we opened.
+	openedFileText  fileReader.Text // will store the fileReader.Text object representing the file we opened
+	cursor2         int             //
+	currentLanguage string          // This is the current language we're studying
+	currentError    string          // This is the current error that go cathced; in this way, if something goes wrong with the APIs the app
 	// doesn't crash, it just notifies the user and tells you what went wrong.
 	bootLanguage  string              // This is the language of the interface (if you're reading this I assume you speak english and thus it will be english)
 	languageTable table.Model         // This is the table listing all the languages (new UI)
@@ -302,12 +302,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// We use a and d to move between pages
 			// If the key pressed is d, move one page to the right
 			case "d":
-        /*
-				Check that we're not on the last page first; if we were on the last page
-				we would ideally not want to be able to go one page further since there's no
-				next page by definition
-				fmt.Println(m.openedFileText.CurrentPage, m.openedFileText.Pages)
-        */
+				/*
+					Check that we're not on the last page first; if we were on the last page
+					we would ideally not want to be able to go one page further since there's no
+					next page by definition
+					fmt.Println(m.openedFileText.CurrentPage, m.openedFileText.Pages)
+				*/
 				if m.openedFileText.CurrentPage < m.openedFileText.Pages-1 {
 					// If everything is alright implement the logic, i.e augment the page counter and go to the next page
 					m.openedFileText.CurrentPage++
