@@ -30,16 +30,15 @@ For more info on them, go in the directory ../terminalSize and ../translator
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strings"
 	"unicode/utf8"
 
-	"example.com/packages/languageHandler"
-	"example.com/packages/terminalSize"
-	"example.com/packages/translator"
+	"github.com/hsnborn22/LinGo/src/languageHandler"
+	"github.com/hsnborn22/LinGo/src/terminalSize"
+	"github.com/hsnborn22/LinGo/src/translator"
 )
 
 /*
@@ -79,7 +78,7 @@ output: string; it is the content of the text file we're opening.
 
 func ReturnFileContent(filename string) string {
 	// Read the content of the text file, and if there's an error, store it inside the err variable.
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	// Conver the content variable (which is a slice of bytes) into a string.
 	actualContent := string(content)
 	// Add a space at the end because otherwise the last character will be skipped.
@@ -319,7 +318,7 @@ This function is used in the InitMap method, which is very important for the log
 func LoadJsonWords(filepath string) map[string]int {
 	// Read the content of the file (which is Json).
 	// if there is an error, save it in the err variable
-	content, err := ioutil.ReadFile(filepath)
+	content, err := os.ReadFile(filepath)
 	// Convert the content we got to string type
 	// in order to work more easily with it throughout the application
 	actualContent := string(content)

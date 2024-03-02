@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -685,15 +684,12 @@ that associates chinese characters to their pinyin romanizations) inside a Go ma
 It returns the map we obtain.
 */
 
-func InitHanzi() map[string][]string {
-	// Get the raw content of the hanzi.json file.
-	jsonData, _ := os.ReadFile("translator/hanzi.json")
-
+func InitHanzi(hanzi []byte) map[string][]string {
 	// Initialize the map we're going to return
 	var data map[string][]string
 
 	// Use json.Unmarshal to decode the json into the map
-	err := json.Unmarshal([]byte(jsonData), &data)
+	err := json.Unmarshal(hanzi, &data)
 	// If there's an error print it out to the console.
 	if err != nil {
 		fmt.Println("Error decoding JSON:", err)
