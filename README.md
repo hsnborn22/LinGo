@@ -3,7 +3,7 @@
   <h1>LinGo</h1>
 </div>
 
-LinGo is a terminal based language acquisiton application, which allows you to learn languages while reading texts. The application allows you to load texts, read them, mark words with different colors based on your knowledge of them, listen the pronunciation of words on the spot, latinize each word (if the script is not a latin script) and get a translation of each word without leaving the application; all the words you marked will then be saved locally on your machine and can be easily imported into anki or memrise flashcards. The application is entirely keyboard-based, making it way faster to use compared to the other alternatives. 
+LinGo is a terminal based language acquisition application, which allows you to learn languages while reading texts. The application allows you to load texts, read them, mark words with different colors based on your knowledge of them, listen the pronunciation of words on the spot, latinize each word (if the script is not a latin script) and get a translation of each word without leaving the application; all the words you marked will then be saved locally on your machine and can be easily imported into anki or memrise flashcards. The application is entirely keyboard-based, making it way faster to use compared to the other alternatives. 
 
 The app also allows you to visualize the stroke order for japanese kanji and chinese hanzi; you can do so by pressing the key "7" while hovering over a character (if the cursor is hovering over a collection of characters it will just allow you to visualize the stroke order for all the characters).
 
@@ -64,7 +64,7 @@ The app also supports latinization for the following non latin scripts (this mea
 * Arabic
 * Hebrew
 * Greek
-* Persian
+* Persian and Pashto (basically arabic chars + some extra characters)
 * Burmese
 * Lao
 * Khmer
