@@ -61,7 +61,7 @@ The app also supports latinization for the following non latin scripts (this mea
 * Korean hangul
 * Ge'ez script (used by tigre, tigrinya, amharic exc.)
 * Hindi
-* Arabic
+* Arabic (latinization will include short vowels if tashkil are included, and only consonants and long vowels without tashkil)
 * Hebrew
 * Greek
 * Persian and Pashto (basically arabic chars + some extra characters)
