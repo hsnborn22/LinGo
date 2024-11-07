@@ -64,7 +64,7 @@ The app also supports latinization for the following non latin scripts (this mea
 * Arabic (latinization will include short vowels if tashkil are included, and only consonants and long vowels without tashkil)
 * Hebrew
 * Greek
-* Persian and Pashto (basically arabic chars + some extra characters)
+* Persian, urdu and Pashto (basically arabic chars + some extra characters)
 * Burmese
 * Lao
 * Khmer
