@@ -34,7 +34,10 @@ import (
 	"log"
 	"net"
 	"os"
+	"sort"
 	"strings"
+	"sync"
+	"unicode"
 	"unicode/utf8"
 
 	"example.com/packages/languageHandler"
@@ -51,6 +54,7 @@ type Text struct {
 	TextContent         string         // This is the actual content of the text.
 	Length              int            // This is the length of the content of the text.
 	TokenList           []string       // This is the list of tokens (or more informally single words) of the text: in european languages, tokens are almost always separated by spaces.
+	WordList            []string       // This is the normalized version of every token in TokenList (same positions), see NormalizeWord. It's the key used for the word levels, translations and audio.
 	TokenCursorPosition int            // This is the current position of our cursor (i.e the current word we're hovering in our application)
 	TokenLength         int            // This is the total number of tokens (words) in the text.
 	Pages               int            // This is the number of pages of the text.
@@ -139,6 +143,74 @@ func TokenizeText(text string) []string {
 	}
 	// Return our slice of tokens.
 	return output
+}
+
+/*
+NormalizeWord function:
+inputs: a token (string) and the language we're studying (string)
+output: the normalized word (string)
+
+Tokens keep the punctuation attached to them ("Mutta," "talo." "¿Qué"), and the same word can appear
+with or without a capital letter at the start of a sentence. This function returns the form of the word
+that we use as a key (for the word levels, the translations, the audio exc.), so that all these variants
+are treated as the same word. The token itself is left untouched, so the text is still displayed as it is.
+
+1) The punctuation marks and symbols at the beginning and at the end of the token are removed.
+We use the unicode categories instead of a fixed list of characters, so that the punctuation of every
+language is recognised (e.g ¿ ¡ « » „ “ 、 。 ، ؟ । ...). Punctuation inside the word is kept,
+since it's often part of the word (l'homme, well-known, aujourd'hui).
+2) The word is lowercased, using the turkish rules for turkish and azerbaijani (I --> ı, İ --> i).
+Scripts without cases (chinese, arabic, thai exc.) are not affected.
+
+If the token is only made of punctuation (e.g "—" or "..."), an empty string is returned:
+it is not a word, so it can't have a level of knowledge.
+*/
+
+func NormalizeWord(token string, language string) string {
+	word := strings.TrimFunc(token, func(r rune) bool {
+		return unicode.IsPunct(r) || unicode.IsSymbol(r) || unicode.IsSpace(r)
+	})
+	if language == "turkish" || language == "azerbaijani" {
+		return strings.ToLowerSpecial(unicode.TurkishCase, word)
+	}
+	return strings.ToLower(word)
+}
+
+/*
+NormalizeTokens function:
+It returns the normalized version (see NormalizeWord) of every token in the list.
+*/
+
+func NormalizeTokens(tokens []string, language string) []string {
+	output := make([]string, len(tokens))
+	for i, token := range tokens {
+		output[i] = NormalizeWord(token, language)
+	}
+	return output
+}
+
+/*
+CurrentWord method:
+It returns the normalized word the cursor is currently on.
+*/
+
+func (t Text) CurrentWord() string {
+	return t.WordList[t.TokenCursorPosition]
+}
+
+/*
+SetCurrentWordLevel method:
+It sets the level of knowledge of the word the cursor is on and saves it in the json file.
+Tokens that are only punctuation are skipped.
+*/
+
+func (t Text) SetCurrentWordLevel(level int, language string) {
+	word := t.CurrentWord()
+	if word == "" {
+		return
+	}
+	t.WordLevels[word] = level
+	MakeJsonFile(t.WordLevels, language)
 }
 
 /*
@@ -351,7 +423,7 @@ func FileExists(filename string) bool {
 /*
 InitMap function:
 inputs:
-1) tokens (slice of strings) --> which is the list of tokens of the current text
+1) words (slice of strings) --> which is the list of normalized words of the current text (see NormalizeWord)
 2) language --> which is the current language we're studying
 output: a map, which is the map which represents how well we know the words in the text.
 
@@ -360,23 +432,41 @@ If there is an existing json files that already has some levels of knowledge for
 If not, create it.
 */
 
-func InitMap(tokens []string, language string) map[string]int {
+func InitMap(words []string, language string) map[string]int {
 	// This is the location of our words.json file, which stores on our disk (non-volatile memory)
 	// the levels of knowledge of various words for the language we're studying.
 	fileInQuestion := fmt.Sprintf("languages/%s/words.json", language)
-	// If the file exists, load a map object from the file.
+	output := make(map[string]int)
+	// If the file exists, load the levels from the file.
 	if FileExists(fileInQuestion) {
-		output := LoadJsonWords(fileInQuestion)
-		return output
-	} else {
-		// If not, create it and initialize all the knowledge levels for the words in the text to 0 (ignore).
-		output := make(map[string]int)
-		for _, token := range tokens {
-			output[token] = 0
+		// Older versions of the app saved the tokens as they were (with punctuation and capital letters),
+		// so we normalize the keys again: if two of them become the same word, keep the highest level.
+		changed := false
+		for k, v := range LoadJsonWords(fileInQuestion) {
+			word := NormalizeWord(k, language)
+			if word != k {
+				changed = true
+			}
+			if word == "" {
+				continue
+			}
+			if old, ok := output[word]; !ok || v > old {
+				output[word] = v
+			}
 		}
-		MakeJsonFile(output, language)
+		if changed {
+			MakeJsonFile(output, language)
+		}
 		return output
 	}
+	// If not, create it and initialize all the knowledge levels for the words in the text to 0 (ignore).
+	for _, word := range words {
+		if word != "" {
+			output[word] = 0
+		}
+	}
+	MakeJsonFile(output, language)
+	return output
 }
 
 /*
@@ -419,40 +509,13 @@ como estas, how are you
 These files can then be exported and made into flashcards using Anki or memrise.
 */
 
-func MakeDictionary(data map[string]int, language string, bootLanguage string) {
-	// Path where we will save our dictionary file.
-	filename := fmt.Sprintf("languages/%s/dictionary.txt", language)
-	// Declare the finalString variable and initialize it to empty string "".
-	// this is the content (as a string) of our dictionary.txt file.
-	finalString := ""
-	finalString += "\n"
-	// Loop through the key value pairs of the data map we passed in.
-	for k, v := range data {
-		// If we don't know a word (i.e if it has code 1 or 2)
-		// save it into the dictionary
-		if v == 1 || v == 2 {
-			// get the translation via the API
-			languageId := languageHandler.LanguageMap2[language]
-			translation, _ := translator.Translate2(k, languageId, bootLanguage)
-			// append to the finalString
-			finalString += fmt.Sprintf("%s, %s\n", k, translation)
-		}
-	}
-	// Use the os.Openfile to open file; if it doesnt exist, it automatically creates it.
-	file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err2 != nil {
-		fmt.Println("Error opening file:", err2)
-		return
-	}
-	defer file.Close() // Close the file when we're done
-
-	// Write data to the file
-	_, err3 := file.Write([]byte(finalString))
-
-	if err3 != nil {
-		fmt.Println("Error writing to file:", err3)
-		return
-	}
+func MakeDictionary(data map[string]int, language string, bootLanguage string) string {
+	languageId := languageHandler.LanguageMap2[language]
+	return writeDictionary(data, language, func(word string) string {
+		// get the translation via the API
+		translation, _ := translator.Translate2(word, languageId, bootLanguage)
+		return fmt.Sprintf("%s, %s\n", word, translation)
+	})
 }
 
 /*
@@ -474,41 +537,66 @@ Example:
 These files can then be exported and made into flashcards using Anki or memrise.
 */
 
-func MakeAltDictionary(data map[string]int, language string, bootLanguage string, hanziData map[string][]string) {
+func MakeAltDictionary(data map[string]int, language string, bootLanguage string, hanziData map[string][]string) string {
+	languageId := languageHandler.LanguageMap2[language]
+	return writeDictionary(data, language, func(word string) string {
+		// get the translation and the latinization via the APIs
+		translation, _ := translator.Translate2(word, languageId, bootLanguage)
+		latinization := translator.LatinizeText(word, hanziData, language)
+		return fmt.Sprintf("%s, %s (%s)\n", word, translation, latinization)
+	})
+}
+
+/*
+writeDictionary function
+
+Shared by MakeDictionary and MakeAltDictionary: it builds the line of every word we don't know
+(i.e. with code 1 or 2) using makeLine, and saves all of them in languages/<language>/dictionary.txt.
+makeLine calls the APIs, so the lines are built by a few goroutines at the same time instead of one after
+the other, which makes big dictionaries much faster to create.
+It returns an error string ("" if everything went fine) instead of printing it, since printing would
+mess up the interface.
+*/
+
+func writeDictionary(data map[string]int, language string, makeLine func(word string) string) string {
 	// Path where we will save our dictionary file.
 	filename := fmt.Sprintf("languages/%s/dictionary.txt", language)
-	// Declare the finalString variable and initialize it to empty string "".
-	// this is the content (as a string) of our dictionary.txt file.
-	finalString := ""
-	finalString += "\n"
-	// Loop through the key value pairs of the data map we passed in.
+
+	words := []string{}
 	for k, v := range data {
-		// If we don't know a word (i.e if it has code 1 or 2)
-		// save it into the dictionary
 		if v == 1 || v == 2 {
-			// get the translation via the API
-			languageId := languageHandler.LanguageMap2[language]
-			translation, _ := translator.Translate2(k, languageId, bootLanguage)
-			latinization := translator.LatinizeText(k, hanziData, language)
-			// append to the finalString
-			finalString += fmt.Sprintf("%s, %s (%s)\n", k, translation, latinization)
+			words = append(words, k)
 		}
 	}
-	// Use the os.Openfile to open file; if it doesnt exist, it automatically creates it.
-	file, err2 := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err2 != nil {
-		fmt.Println("Error opening file:", err2)
-		return
-	}
-	defer file.Close() // Close the file when we're done
+	sort.Strings(words)
 
-	// Write data to the file
-	_, err3 := file.Write([]byte(finalString))
-
-	if err3 != nil {
-		fmt.Println("Error writing to file:", err3)
-		return
+	// Each goroutine takes the indexes of the words from the channel and saves the line in the same position.
+	const workers = 8
+	lines := make([]string, len(words))
+	indexes := make(chan int)
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := range indexes {
+				lines[i] = makeLine(words[i])
+			}
+		}()
 	}
+	for i := range words {
+		indexes <- i
+	}
+	close(indexes)
+	wg.Wait()
+
+	finalString := "\n" + strings.Join(lines, "")
+
+	// os.WriteFile creates the file if it doesn't exist, and overwrites it otherwise.
+	if err := os.WriteFile(filename, []byte(finalString), 0666); err != nil {
+		return "Error writing the dictionary file: " + err.Error()
+	}
+	return ""
 }
 
 /*
@@ -536,9 +624,10 @@ func InitText(filename string, language string) Text {
 		pageList := DivideInPages(TokenList)
 		// initialize a word map using the InitMap function: this denotes the level of knowledge of the words inside the text
 		// in a particular language.
-		var wordsMap = InitMap(TokenList, language)
+		WordList := NormalizeTokens(TokenList, language)
+		var wordsMap = InitMap(WordList, language)
 		// Create outputText object
-		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, WordList: WordList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
 		// Return it.
 		return outputText
 	} else if !CheckIfContentIsNil(content) && language == "chinese" {
@@ -548,8 +637,9 @@ func InitText(filename string, language string) Text {
 		var contentLength = utf8.RuneCountInString(content)
 		TokenList := TokenizeJapaneseText(content)
 		pageList := DivideInPages(TokenList)
-		var wordsMap = InitMap(TokenList, language)
-		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
+		WordList := NormalizeTokens(TokenList, language)
+		var wordsMap = InitMap(WordList, language)
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, WordList: WordList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
 		return outputText
 	} else if !CheckIfContentIsNil(content) && (language == "japanese" || language == "khmer" || language == "thai" || language == "burmese" || language == "lao") {
 		// Calculate the length of the content inside the file.
@@ -558,8 +648,9 @@ func InitText(filename string, language string) Text {
 		var contentLength = utf8.RuneCountInString(content)
 		TokenList := TokenizeJapaneseText(content)
 		pageList := DivideInPages(TokenList)
-		var wordsMap = InitMap(TokenList, language)
-		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
+		WordList := NormalizeTokens(TokenList, language)
+		var wordsMap = InitMap(WordList, language)
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, WordList: WordList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList), WordLevels: wordsMap}
 		return outputText
 	} else {
 		content = "Text file is empty. Are you sure you opened the right one?"
@@ -567,7 +658,7 @@ func InitText(filename string, language string) Text {
 		var contentLength = len(content)
 		TokenList := TokenizeText(content)
 		pageList := DivideInPages(TokenList)
-		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList)}
+		outputText := Text{TextContent: content, Length: contentLength, TokenList: TokenList, WordList: NormalizeTokens(TokenList, language), TokenCursorPosition: currentCursor, TokenLength: len(TokenList), CurrentPage: 0, PageList: pageList, Pages: len(pageList)}
 		return outputText
 	}
 }

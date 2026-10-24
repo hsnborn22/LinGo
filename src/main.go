@@ -123,6 +123,97 @@ type model struct {
 	languageTable table.Model         // This is the table listing all the languages (new UI)
 	textTable     table.Model         // This is the table listing all the text files we can open inside the app (new UI).
 	hanziData     map[string][]string // This is the map that stores the pinyin equivalent of the most common hanzi in simplified mandarin chinese
+	// These count the translation/latinization requests made so far: a result is shown only if it belongs to
+	// the latest request, so that a slow answer for an old word never overwrites the one for the current word.
+	translateRequest int
+	latinizeRequest  int
+	makingDictionary bool   // true while a dictionary file is being created, so that it is not started twice
+	defaultLanguage  string // The language selected as default: when set, the language selection menu is skipped at startup
+	defaultCursor    int    // Cursor of the menu shown after selecting a language (0 --> continue, 1 --> set/remove as default)
+}
+
+// File storing the default language (it doesn't exist if no default language was chosen).
+const defaultLanguageFile = "setup/defaultLanguage.txt"
+
+// Messages sent back to Update by the commands that run the slow operations (API calls, audio playback)
+// in the background, so that the interface keeps responding while waiting for them.
+
+type translationMsg struct {
+	request     int
+	translation string
+	err         string
+}
+
+type latinizationMsg struct {
+	request      int
+	latinization string
+}
+
+type audioMsg struct {
+	err string
+}
+
+type dictionaryMsg struct {
+	language string
+	err      string
+}
+
+// translateCmd runs the translation in the background; useGoogle selects Translate2 instead of Translate.
+func translateCmd(request int, word string, languageId string, bootLanguage string, useGoogle bool) tea.Cmd {
+	return func() tea.Msg {
+		var translation, errString string
+		if useGoogle {
+			translation, errString = translator.Translate2(word, languageId, bootLanguage)
+		} else {
+			translation, errString = translator.Translate(word, languageId, bootLanguage)
+		}
+		return translationMsg{request: request, translation: translation, err: errString}
+	}
+}
+
+// latinizeCmd runs the latinization in the background (some languages need an API call).
+func latinizeCmd(request int, word string, hanziData map[string][]string, language string) tea.Cmd {
+	return func() tea.Msg {
+		return latinizationMsg{request: request, latinization: translator.LatinizeText(word, hanziData, language)}
+	}
+}
+
+// audioCmd downloads (if not cached) and plays the audio of a word in the background.
+func audioCmd(word string, languageId string) tea.Cmd {
+	return func() tea.Msg {
+		mp3FilePath, audioErr := audioPlayer.GetAudio(word, languageId)
+		// the mp3 stays inside the audio cache, so it is not downloaded again next time
+		if audioErr == "" {
+			audioErr = audioPlayer.PlayMP3(mp3FilePath)
+		}
+		return audioMsg{err: audioErr}
+	}
+}
+
+// dictionaryCmd creates the dictionary file in the background (one API call per word we don't know);
+// withLatinization selects MakeAltDictionary instead of MakeDictionary.
+func dictionaryCmd(wordLevels map[string]int, language string, bootLanguage string, hanziData map[string][]string, withLatinization bool) tea.Cmd {
+	// copy the map, since Update keeps changing the original while the dictionary is being made
+	data := make(map[string]int, len(wordLevels))
+	for k, v := range wordLevels {
+		data[k] = v
+	}
+	return func() tea.Msg {
+		if withLatinization {
+			return dictionaryMsg{language: language, err: fileReader.MakeAltDictionary(data, language, bootLanguage, hanziData)}
+		}
+		return dictionaryMsg{language: language, err: fileReader.MakeDictionary(data, language, bootLanguage)}
+	}
+}
+
+// startDictionary starts dictionaryCmd, unless a dictionary is already being created.
+func (m model) startDictionary(wordLevels map[string]int, withLatinization bool) (tea.Model, tea.Cmd) {
+	if m.makingDictionary {
+		return m, nil
+	}
+	m.makingDictionary = true
+	m.currentError = fmt.Sprintf("languages/%s/dictionary.txt ...", m.currentLanguage)
+	return m, dictionaryCmd(wordLevels, m.currentLanguage, m.bootLanguage, m.hanziData, withLatinization)
 }
 
 // This function initializes the bubbletea model to boot the application; this is one of the "dirtiest" parts of the application
@@ -178,6 +269,24 @@ func initialModel() model {
 		Background(lipgloss.Color("57")).
 		Bold(false)
 	t.SetStyles(s)
+
+	// Read the default language, if one was chosen; if it's still one of the available languages,
+	// start directly in the text selection menu and point the language table to it.
+	defaultLang, _ := ioutil.ReadFile(defaultLanguageFile)
+	defaultLangString := strings.TrimSpace(string(defaultLang))
+	startView := 2
+	startLanguage := ""
+	for i, row := range rows {
+		if defaultLangString != "" && row[0] == defaultLangString {
+			startView = 0
+			startLanguage = defaultLangString
+			t.SetCursor(i)
+		}
+	}
+	if startLanguage == "" {
+		defaultLangString = ""
+	}
+
 	textTitle := interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[bootLangString]][3]
 	columns2 := []table.Column{
 		{Title: textTitle, Width: 35},
@@ -201,15 +310,17 @@ func initialModel() model {
 
 	// return the model object we need to start the bubbletea app.
 	return model{
-		choices:       filePaths,
-		choices2:      directories,
-		viewIndex:     2,
-		cursor2:       0,
-		currentError:  "",
-		bootLanguage:  bootLangString,
-		languageTable: t,
-		textTable:     t2,
-		hanziData:     translator.InitHanzi(),
+		choices:         filePaths,
+		choices2:        directories,
+		viewIndex:       startView,
+		cursor2:         0,
+		currentError:    "",
+		currentLanguage: startLanguage,
+		defaultLanguage: defaultLangString,
+		bootLanguage:    bootLangString,
+		languageTable:   t,
+		textTable:       t2,
+		hanziData:       translator.InitHanzi(),
 	}
 }
 
@@ -227,8 +338,40 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.openedFileText.CurrentPage > m.openedFileText.Pages-1 {
 		m.openedFileText.CurrentPage = 0
 	}
-	m.languageTable, _ = m.languageTable.Update(msg)
-	m.textTable, _ = m.textTable.Update(msg)
+	// Only the table of the menu we're in reacts to the keys
+	switch m.viewIndex {
+	case 0:
+		m.textTable, _ = m.textTable.Update(msg)
+	case 2:
+		m.languageTable, _ = m.languageTable.Update(msg)
+	}
+
+	// Results of the background commands
+	switch msg := msg.(type) {
+	case translationMsg:
+		if msg.request == m.translateRequest {
+			m.openedFileText.CurrentTranslate = msg.translation
+			m.currentError = msg.err
+		}
+		return m, nil
+	case latinizationMsg:
+		if msg.request == m.latinizeRequest {
+			m.openedFileText.CurrentLatinization = msg.latinization
+		}
+		return m, nil
+	case audioMsg:
+		m.currentError += msg.err
+		return m, nil
+	case dictionaryMsg:
+		m.makingDictionary = false
+		if msg.err != "" {
+			m.currentError = msg.err
+		} else {
+			m.currentError = fmt.Sprintf("languages/%s/dictionary.txt ✓", msg.language)
+		}
+		return m, nil
+	}
+
 	switch m.viewIndex {
 	case 0:
 		switch msg := msg.(type) {
@@ -265,13 +408,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.openedFile = "texts/" + m.textTable.SelectedRow()[0]
 				text := fileReader.InitText(m.openedFile, m.currentLanguage)
 				m.openedFileText = text
+				// discard the results still pending for the previously opened text
+				m.translateRequest++
+				m.latinizeRequest++
 			// If the key pressed is f, generate a dictionary file.
 			case "f":
-				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
-				fileReader.MakeDictionary(dictionary, m.currentLanguage, m.bootLanguage)
+				return m.startDictionary(fileReader.MakeDictFromMenu(m.currentLanguage), false)
 			case "z":
-				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
-				fileReader.MakeAltDictionary(dictionary, m.currentLanguage, m.bootLanguage, m.hanziData)
+				return m.startDictionary(fileReader.MakeDictFromMenu(m.currentLanguage), true)
 			}
 		}
 
@@ -333,62 +477,52 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case "0":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 0
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(0, m.currentLanguage)
 			case "1":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 1
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(1, m.currentLanguage)
 			case "2":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 2
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(2, m.currentLanguage)
 			case "3":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 3
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(3, m.currentLanguage)
 
 			case "4":
 				currentLanguageId := languageHandler.LanguageMap[m.currentLanguage]
 				m.currentError = ""
-				m.currentError += audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentLanguageId)
-				mp3FilePath := fmt.Sprintf("audio/%s.mp3", m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
-
-				if m.currentError != "" {
-					m.currentError += "\n"
-				}
-				m.currentError += audioPlayer.PlayMP3(mp3FilePath)
-				m.currentError += "\n"
-				m.currentError += audioPlayer.DeleteMP3(mp3FilePath)
+				return m, audioCmd(m.openedFileText.CurrentWord(), currentLanguageId)
 
 			// get translation
 			case "5":
 				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				translation, errString := translator.Translate2(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
-				m.currentError = errString
-				m.openedFileText.CurrentTranslate = translation
+				m.translateRequest++
+				m.openedFileText.CurrentTranslate = "..."
+				return m, translateCmd(m.translateRequest, m.openedFileText.CurrentWord(), currentlLanguageId, m.bootLanguage, true)
 
 			case "6":
-				m.openedFileText.CurrentLatinization = translator.LatinizeText(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], m.hanziData, m.currentLanguage)
+				m.latinizeRequest++
+				m.openedFileText.CurrentLatinization = "..."
+				return m, latinizeCmd(m.latinizeRequest, m.openedFileText.CurrentWord(), m.hanziData, m.currentLanguage)
 			case "7":
-				url := fmt.Sprintf("https://www.strokeorder.com/chinese/%s", m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				url := fmt.Sprintf("https://www.strokeorder.com/chinese/%s", m.openedFileText.CurrentWord())
 				err := strokeOrder.OpenBrowser(url)
 				if err != nil {
 					m.currentError += err.Error()
 				}
 			case "8":
-				url := fmt.Sprintf("https://translate.google.com/?sl=%s&tl=%s&text=%s&op=translate", languageHandler.LanguageMap2[m.currentLanguage], m.bootLanguage, m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
+				url := fmt.Sprintf("https://translate.google.com/?sl=%s&tl=%s&text=%s&op=translate", languageHandler.LanguageMap2[m.currentLanguage], m.bootLanguage, m.openedFileText.CurrentWord())
 				err := strokeOrder.OpenBrowser(url)
 				if err != nil {
 					m.currentError += err.Error()
 				}
 			case "9":
 				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
-				m.currentError = errString
-				m.openedFileText.CurrentTranslate = translation
+				m.translateRequest++
+				m.openedFileText.CurrentTranslate = "..."
+				return m, translateCmd(m.translateRequest, m.openedFileText.CurrentWord(), currentlLanguageId, m.bootLanguage, false)
 
 			case "f":
-				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage)
+				return m.startDictionary(m.openedFileText.WordLevels, false)
 			case "z":
-				fileReader.MakeAltDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage, m.hanziData)
+				return m.startDictionary(m.openedFileText.WordLevels, true)
 
 			// Move the cursor to the beginning of the current page.
 			case "m":
@@ -424,11 +558,49 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// The "enter" key and the spacebar (a literal space) toggle
 			// the selected state for the item that the cursor is pointing at.
 			case "enter", " ":
-				m.viewIndex = 0
+				m.viewIndex = 3
+				m.defaultCursor = 0
 				m.currentLanguage = m.languageTable.SelectedRow()[0]
 
 			}
 
+		}
+	// Menu shown after selecting a language: continue, or set (remove) it as the default language.
+	case 3:
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			case "up", "k":
+				if m.defaultCursor > 0 {
+					m.defaultCursor--
+				}
+			case "down", "j":
+				if m.defaultCursor < 1 {
+					m.defaultCursor++
+				}
+			case "b":
+				m.viewIndex = 2
+				m.currentLanguage = ""
+			case "enter", " ":
+				m.viewIndex = 0
+				m.currentError = ""
+				if m.defaultCursor == 1 {
+					if m.defaultLanguage == m.currentLanguage {
+						// The language is already the default one: remove it as default.
+						if err := os.Remove(defaultLanguageFile); err != nil && !os.IsNotExist(err) {
+							m.currentError = err.Error()
+						} else {
+							m.defaultLanguage = ""
+						}
+					} else if err := os.WriteFile(defaultLanguageFile, []byte(m.currentLanguage+"\n"), 0644); err != nil {
+						m.currentError = err.Error()
+					} else {
+						m.defaultLanguage = m.currentLanguage
+					}
+				}
+			}
 		}
 
 	}
@@ -450,6 +622,9 @@ func (m model) View() string {
 		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][4]
 		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][5]
 		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1] + "\n"
+		if m.currentError != "" {
+			s += m.currentError + "\n"
+		}
 	} else if m.viewIndex == 1 {
 		wordsPerLine := terminalSize.GetWordsPerLine()
 		linesPerPage := terminalSize.GetLinesPerPage()
@@ -469,7 +644,7 @@ func (m model) View() string {
 			actualKey := k + (m.openedFileText.CurrentPage * wordsPerLine * linesPerPage)
 			if actualKey == m.openedFileText.TokenCursorPosition {
 				s += selectedItemStyle.Render(element)
-			} else if value, ok := m.openedFileText.WordLevels[element]; ok {
+			} else if value, ok := m.openedFileText.WordLevels[m.openedFileText.WordList[actualKey]]; ok {
 				switch value {
 				case 0:
 					s += element
@@ -498,6 +673,21 @@ func (m model) View() string {
 		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][12] + "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1]
 	} else if m.viewIndex == 2 {
 		return baseStyle.Render(m.languageTable.View()) + "\n"
+	} else if m.viewIndex == 3 {
+		interfaceText := interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]]
+		options := []string{interfaceText[15], interfaceText[16]}
+		if m.defaultLanguage == m.currentLanguage {
+			options[1] = interfaceText[17]
+		}
+		s = interfaceText[14] + m.currentLanguage + "\n\n"
+		for i, option := range options {
+			if i == m.defaultCursor {
+				s += selectedItemStyle.Render("> "+option) + "\n"
+			} else {
+				s += itemStyle.Render(option) + "\n"
+			}
+		}
+		s += "\n" + interfaceText[5] + "\n" + interfaceText[1] + "\n"
 	}
 
 	// Send the UI for rendering

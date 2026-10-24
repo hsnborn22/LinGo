@@ -86,6 +86,69 @@ type model struct {
 	currentLanguage string // current selected language
 	currentError    string // current error we're encountering
 	bootLanguage    string // the language we selected for the interface
+	// counts the translation requests made so far: a result is shown only if it belongs to the latest request
+	translateRequest int
+	makingDictionary bool // true while a dictionary file is being created, so that it is not started twice
+}
+
+// Messages sent back to Update by the commands that run the slow operations (API calls, audio playback)
+// in the background, so that the interface keeps responding while waiting for them.
+
+type translationMsg struct {
+	request     int
+	translation string
+	err         string
+}
+
+type audioMsg struct {
+	err string
+}
+
+// translateCmd runs the translation in the background.
+func translateCmd(request int, word string, languageId string, bootLanguage string) tea.Cmd {
+	return func() tea.Msg {
+		translation, errString := translator.Translate(word, languageId, bootLanguage)
+		return translationMsg{request: request, translation: translation, err: errString}
+	}
+}
+
+// audioCmd downloads (if not cached) and plays the audio of a word in the background.
+func audioCmd(word string, languageId string) tea.Cmd {
+	return func() tea.Msg {
+		mp3FilePath, audioErr := audioPlayer.GetAudio(word, languageId)
+		// the mp3 stays inside the audio cache, so it is not downloaded again next time
+		if audioErr == "" {
+			audioErr = audioPlayer.PlayMP3(mp3FilePath)
+		}
+		return audioMsg{err: audioErr}
+	}
+}
+
+type dictionaryMsg struct {
+	language string
+	err      string
+}
+
+// dictionaryCmd creates the dictionary file in the background (one API call per word we don't know).
+func dictionaryCmd(wordLevels map[string]int, language string, bootLanguage string) tea.Cmd {
+	// copy the map, since Update keeps changing the original while the dictionary is being made
+	data := make(map[string]int, len(wordLevels))
+	for k, v := range wordLevels {
+		data[k] = v
+	}
+	return func() tea.Msg {
+		return dictionaryMsg{language: language, err: fileReader.MakeDictionary(data, language, bootLanguage)}
+	}
+}
+
+// startDictionary starts dictionaryCmd, unless a dictionary is already being created.
+func (m model) startDictionary(wordLevels map[string]int) (tea.Model, tea.Cmd) {
+	if m.makingDictionary {
+		return m, nil
+	}
+	m.makingDictionary = true
+	m.currentError = fmt.Sprintf("languages/%s/dictionary.txt ...", m.currentLanguage)
+	return m, dictionaryCmd(wordLevels, m.currentLanguage, m.bootLanguage)
 }
 
 // initialModel function:
@@ -115,6 +178,27 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Results of the background commands
+	switch msg := msg.(type) {
+	case translationMsg:
+		if msg.request == m.translateRequest {
+			m.openedFileText.CurrentTranslate = msg.translation
+			m.currentError = msg.err
+		}
+		return m, nil
+	case audioMsg:
+		m.currentError += msg.err
+		return m, nil
+	case dictionaryMsg:
+		m.makingDictionary = false
+		if msg.err != "" {
+			m.currentError = msg.err
+		} else {
+			m.currentError = fmt.Sprintf("languages/%s/dictionary.txt ✓", msg.language)
+		}
+		return m, nil
+	}
+
 	switch m.viewIndex {
 	case 0:
 		switch msg := msg.(type) {
@@ -151,9 +235,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.openedFile = m.choices[m.cursor]
 				text := fileReader.InitText(m.openedFile, m.currentLanguage)
 				m.openedFileText = text
+				// discard the translation still pending for the previously opened text
+				m.translateRequest++
 			case "f":
-				dictionary := fileReader.MakeDictFromMenu(m.currentLanguage)
-				fileReader.MakeDictionary(dictionary, m.currentLanguage, m.bootLanguage)
+				return m.startDictionary(fileReader.MakeDictFromMenu(m.currentLanguage))
 			}
 		}
 
@@ -204,40 +289,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case "0":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 0
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(0, m.currentLanguage)
 			case "1":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 1
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(1, m.currentLanguage)
 			case "2":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 2
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(2, m.currentLanguage)
 			case "3":
-				m.openedFileText.WordLevels[m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition]] = 3
-				fileReader.MakeJsonFile(m.openedFileText.WordLevels, m.currentLanguage)
+				m.openedFileText.SetCurrentWordLevel(3, m.currentLanguage)
 
 			case "4":
 				currentLanguageId := languageHandler.LanguageMap[m.currentLanguage]
 				m.currentError = ""
-				m.currentError += audioPlayer.GetAudio(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentLanguageId)
-				mp3FilePath := fmt.Sprintf("audio/%s.mp3", m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition])
-
-				if m.currentError != "" {
-					m.currentError += "\n"
-				}
-				m.currentError += audioPlayer.PlayMP3(mp3FilePath)
-				m.currentError += "\n"
-				m.currentError += audioPlayer.DeleteMP3(mp3FilePath)
+				return m, audioCmd(m.openedFileText.CurrentWord(), currentLanguageId)
 
 			// get translation
 			case "5":
 				currentlLanguageId := languageHandler.LanguageMap2[m.currentLanguage]
-				translation, errString := translator.Translate(m.openedFileText.TokenList[m.openedFileText.TokenCursorPosition], currentlLanguageId, m.bootLanguage)
-				m.currentError = errString
-				m.openedFileText.CurrentTranslate = translation
+				m.translateRequest++
+				m.openedFileText.CurrentTranslate = "..."
+				return m, translateCmd(m.translateRequest, m.openedFileText.CurrentWord(), currentlLanguageId, m.bootLanguage)
 
 			case "f":
-				fileReader.MakeDictionary(m.openedFileText.WordLevels, m.currentLanguage, m.bootLanguage)
+				return m.startDictionary(m.openedFileText.WordLevels)
 
 			// Move the cursor to the beginning of the current page.
 			case "m":
@@ -312,6 +385,9 @@ func (m model) View() string {
 		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][4]
 		s += interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][5]
 		s += "\n" + interfaceLanguage.InterfaceLanguage[interfaceLanguage.LanguagesCodeMap[m.bootLanguage]][1] + "\n"
+		if m.currentError != "" {
+			s += m.currentError + "\n"
+		}
 	} else if m.viewIndex == 1 {
 		wordsPerLine := terminalSize.GetWordsPerLine()
 		linesPerPage := terminalSize.GetLinesPerPage()
@@ -331,7 +407,7 @@ func (m model) View() string {
 			actualKey := k + (m.openedFileText.CurrentPage * wordsPerLine * linesPerPage)
 			if actualKey == m.openedFileText.TokenCursorPosition {
 				s += selectedItemStyle.Render(element)
-			} else if value, ok := m.openedFileText.WordLevels[element]; ok {
+			} else if value, ok := m.openedFileText.WordLevels[m.openedFileText.WordList[actualKey]]; ok {
 				switch value {
 				case 0:
 					s += element

@@ -4,10 +4,10 @@ package interfaceLanguage
 // Stores the translated interace in various languages.
 
 var InterfaceLanguage [][]string = [][]string{
-	{"What language do you want to study?", "Press q to quit.", "You are currently studying: ", "What text file do you want to open?", "\nPress f to make a dictionary file.\n", "Press b to go back to the language selection menu.\n", "Hello you are in ", " and cursor is at: ", "Current size: ", "Pages: ", "Translation of the selected word: ", "Error flag: ", "To go back to the main menu, press 'b' || Press f to make a dictionary file.", "Current romanization: "},
-	{"Che lingua vuoi studiare?", "Premere q per uscire.", "Stai studiando: ", "Che file di testo vuoi aprire?", "\nPremere 'f' per creare un file da esportare in flashcards.\n", "Premere 'b' per tornare al menu di selezione lingua.\n", "Sei correntemente in ", " e il cursore è alla posizione: ", "Dimensione attuale: ", "Pagine: ", "Traduzione della parola selezionata: ", "Errori: ", "Per tornare al menu principale, premere 'b' || Premere f per creare un flashcard file.", "Latinizzazione: "},
-	{"Quelle langue voulez-vous étudier?", "Appuyez sur la touche 'q' pour quitter.", "Vous étudiez maintenant: ", "Quel text-file voules-vouz ouvrir?", "\nAppuyez sur la touche 'f' pour créer une file pour le flashcards.\n", "Appuyez sur la touche 'b' pour retourner à le menu pour la selection d'une langue", "Vous êtes maintenant dans ", " et le curseur est à la position: ", "Dimension actuelle: ", "Pages: ", "Traduction de le mot sélectionné: ", "Erreurs: ", "Pour tourner à le menu principal, appuyez sur la touche 'b' || Appuyez sur la touche 'f' pour créer une file pour le flashcards.", "Latinisation: "},
-	{"¿Qué idioma quieres estudiar?", "Pulse 'q' para salir del programa.", "Actualmente estás estudiando: ", "¿Qué text-file quieres abrir?", "\nPulsa 'f' para crear un file para flashcards.\n", "Prensa 'b' para volver al menú de selección de idioma.", "Actualmente te encuentras en ", " y el cursor está en la posición: ", "Dimensiones actuales: ", "Paginas: ", "Traducción de la palabra seleccionada: ", "Errores: ", "Para volver a le menu principal, pulse 'b' || Pulsa 'f' para crear un file para flashcards. ", "Latinización: "},
+	{"What language do you want to study?", "Press q to quit.", "You are currently studying: ", "What text file do you want to open?", "\nPress f to make a dictionary file.\n", "Press b to go back to the language selection menu.\n", "Hello you are in ", " and cursor is at: ", "Current size: ", "Pages: ", "Translation of the selected word: ", "Error flag: ", "To go back to the main menu, press 'b' || Press f to make a dictionary file.", "Current romanization: ", "Selected language: ", "Continue", "Set as default language", "Remove as default language"},
+	{"Che lingua vuoi studiare?", "Premere q per uscire.", "Stai studiando: ", "Che file di testo vuoi aprire?", "\nPremere 'f' per creare un file da esportare in flashcards.\n", "Premere 'b' per tornare al menu di selezione lingua.\n", "Sei correntemente in ", " e il cursore è alla posizione: ", "Dimensione attuale: ", "Pagine: ", "Traduzione della parola selezionata: ", "Errori: ", "Per tornare al menu principale, premere 'b' || Premere f per creare un flashcard file.", "Latinizzazione: ", "Lingua selezionata: ", "Continua", "Imposta come lingua predefinita", "Rimuovi come lingua predefinita"},
+	{"Quelle langue voulez-vous étudier?", "Appuyez sur la touche 'q' pour quitter.", "Vous étudiez maintenant: ", "Quel text-file voules-vouz ouvrir?", "\nAppuyez sur la touche 'f' pour créer une file pour le flashcards.\n", "Appuyez sur la touche 'b' pour retourner à le menu pour la selection d'une langue", "Vous êtes maintenant dans ", " et le curseur est à la position: ", "Dimension actuelle: ", "Pages: ", "Traduction de le mot sélectionné: ", "Erreurs: ", "Pour tourner à le menu principal, appuyez sur la touche 'b' || Appuyez sur la touche 'f' pour créer une file pour le flashcards.", "Latinisation: ", "Langue sélectionnée: ", "Continuer", "Définir comme langue par défaut", "Ne plus utiliser comme langue par défaut"},
+	{"¿Qué idioma quieres estudiar?", "Pulse 'q' para salir del programa.", "Actualmente estás estudiando: ", "¿Qué text-file quieres abrir?", "\nPulsa 'f' para crear un file para flashcards.\n", "Prensa 'b' para volver al menú de selección de idioma.", "Actualmente te encuentras en ", " y el cursor está en la posición: ", "Dimensiones actuales: ", "Paginas: ", "Traducción de la palabra seleccionada: ", "Errores: ", "Para volver a le menu principal, pulse 'b' || Pulsa 'f' para crear un file para flashcards. ", "Latinización: ", "Idioma seleccionado: ", "Continuar", "Establecer como idioma predeterminado", "Quitar como idioma predeterminado"},
 	{"Welche Sprache möchtest du lernen?",
 		"Drücke 'q', um das Programm zu beenden.",
 		"Du lernst derzeit: ",
@@ -21,7 +21,11 @@ var InterfaceLanguage [][]string = [][]string{
 		"Übersetzung des ausgewählten Worts: ",
 		"Fehler: ",
 		"Um zum Hauptmenü zurückzukehren, drücke 'b' || Drücke 'f', um eine Datei für Lernkarten zu erstellen.",
-		"Latinisierung: "},
+		"Latinisierung: ",
+		"Ausgewählte Sprache: ",
+		"Weiter",
+		"Als Standardsprache festlegen",
+		"Als Standardsprache entfernen"},
 	{"Какой язык вы хотите изучать?",
 		"Нажмите 'q', чтобы выйти из программы.",
 		"Сейчас изучаете: ",
@@ -35,7 +39,11 @@ var InterfaceLanguage [][]string = [][]string{
 		"Перевод выбранного слова: ",
 		"Ошибки и исключения: ",
 		"Для возврата в главное меню нажмите 'b' || Нажмите 'f', чтобы создать файл для флашкарды.",
-		"Латинизация: "},
+		"Латинизация: ",
+		"Выбранный язык: ",
+		"Продолжить",
+		"Сделать языком по умолчанию",
+		"Убрать язык по умолчанию"},
 }
 
 // LanguagesCodeMap map:
